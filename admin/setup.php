@@ -1,6 +1,6 @@
 <?php
 /* Copyright (C) 2004-2017 Laurent Destailleur  <eldy@users.sourceforge.net>
- * Copyright (C) 2025 SuperAdmin
+ * Copyright (C) 2025 Arthur LENOBLE
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,7 +56,6 @@ global $langs, $user;
 // Libraries
 require_once DOL_DOCUMENT_ROOT."/core/lib/admin.lib.php";
 require_once '../lib/condensedorders.lib.php';
-//require_once "../class/myclass.class.php";
 
 // Translations
 $langs->loadLangs(array("admin", "condensedorders@condensedorders"));
@@ -100,9 +99,9 @@ if (!$user->admin) {
 // Enter here all parameters in your setup page
 
 // Setup conf for selection of an URL
-$item = $formSetup->newItem('CONDENSEDORDERS_MYPARAM1');
-$item->fieldOverride = (empty($_SERVER['HTTPS']) ? 'http://' : 'https://') . $_SERVER['HTTP_HOST'];
-$item->cssClass = 'minwidth500';
+// $item = $formSetup->newItem('CONDENSEDORDERS_MYPARAM1');
+// $item->fieldOverride = (empty($_SERVER['HTTPS']) ? 'http://' : 'https://') . $_SERVER['HTTP_HOST'];
+// $item->cssClass = 'minwidth500';
 /*
 // Setup conf for selection of a simple string input
 $item = $formSetup->newItem('CONDENSEDORDERS_MYPARAM2');
@@ -116,10 +115,10 @@ $item->nameText = $item->getNameText().' more html text ';
 // Setup conf for a selection of a thirdparty
 $item = $formSetup->newItem('CONDENSEDORDERS_MYPARAM4');
 $item->setAsThirdpartyType();
-
+*/
 // Setup conf for a selection of a boolean
-$formSetup->newItem('CONDENSEDORDERS_MYPARAM5')->setAsYesNo();
-
+// $formSetup->newItem('CONDENSEDORDERS_ADDON')->setAsYesNo();
+/*
 // Setup conf for a selection of an email template of type thirdparty
 $formSetup->newItem('CONDENSEDORDERS_MYPARAM6')->setAsEmailTemplate('thirdparty');
 
@@ -181,6 +180,9 @@ if ($tmpobjectkey && !array_key_exists($tmpobjectkey, $myTmpObjects)) {
 	accessforbidden('Bad value for object. Hack attempt ?');
 }
 
+if (!getDolGlobalString('CONDENSEDORDERS_ADDON')){
+	$conf->global->CONDENSEDORDERS_ADDON = 'brahe';
+}
 
 /*
  * Actions
@@ -249,7 +251,7 @@ if ($action == 'updateMask') {
 } elseif ($action == 'setmod') {
 	// TODO Check if numbering module chosen can be activated by calling method canBeActivated
 	if (!empty($tmpobjectkey)) {
-		$constforval = 'CONDENSEDORDERS_'.strtoupper($tmpobjectkey)."_ADDON";
+		$constforval = 'CONDENSEDORDERS_ADDON_PDF';
 		dolibarr_set_const($db, $constforval, $value, 'chaine', 0, '', $conf->entity);
 	}
 } elseif ($action == 'set') {
@@ -259,7 +261,7 @@ if ($action == 'updateMask') {
 	$ret = delDocumentModel($value, $type);
 	if ($ret > 0) {
 		if (!empty($tmpobjectkey)) {
-			$constforval = 'CONDENSEDORDERS_'.strtoupper($tmpobjectkey).'_ADDON_PDF';
+			$constforval = 'CONDENSEDORDERS_ADDON_PDF';
 			if (getDolGlobalString($constforval) == "$value") {
 				dolibarr_del_const($db, $constforval, $conf->entity);
 			}
@@ -268,7 +270,7 @@ if ($action == 'updateMask') {
 } elseif ($action == 'setdoc') {
 	// Set or unset default model
 	if (!empty($tmpobjectkey)) {
-		$constforval = 'CONDENSEDORDERS_'.strtoupper($tmpobjectkey).'_ADDON_PDF';
+		$constforval = 'CONDENSEDORDERS_ADDON_PDF';
 		if (dolibarr_set_const($db, $constforval, $value, 'chaine', 0, '', $conf->entity)) {
 			// The constant that was read before the new set
 			// We therefore requires a variable to have a coherent view
@@ -325,12 +327,6 @@ echo '<span class="opacitymedium">'.$langs->trans("CondensedOrdersSetupPage").'<
  print '</div>';
  }
  */
-if (!empty($formSetup->items)) {
-	print $formSetup->generateOutput(true);
-	print '<br>';
-} else {
-	print '<br>'.$langs->trans("NothingToSetup");
-}
 
 
 foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
@@ -539,7 +535,7 @@ foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
 
 										// Default
 										print '<td class="center">';
-										$constforvar = 'CONDENSEDORDERS_'.strtoupper($myTmpObjectKey).'_ADDON_PDF';
+										$constforvar = 'CONDENSEDORDERS_ADDON_PDF';
 										if (getDolGlobalString($constforvar) == $name) {
 											//print img_picto($langs->trans("Default"), 'on');
 											// Even if choice is the default value, we allow to disable it. Replace this with previous line if you need to disable unset
@@ -589,9 +585,148 @@ foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
 	}
 }
 
-if (empty($setupnotempty)) {
-	print '<br>'.$langs->trans("NothingToSetup");
+// Load array def with activated templates
+$def = array();
+$sql = "SELECT nom";
+$sql .= " FROM ".MAIN_DB_PREFIX."document_model";
+$sql .= " WHERE type = '".$db->escape($type)."'";
+$sql .= " AND entity = ".$conf->entity;
+$resql = $db->query($sql);
+if ($resql) {
+	$i = 0;
+	$num_rows = $db->num_rows($resql);
+	while ($i < $num_rows) {
+		$array = $db->fetch_array($resql);
+		if (is_array($array)) {
+			array_push($def, $array[0]);
+		}
+		$i++;
+	}
+} else {
+	dol_print_error($db);
 }
+
+print '<div class="div-table-responsive-no-min">';
+print '<table class="noborder centpercent">'."\n";
+print '<tr class="liste_titre">'."\n";
+print '<td>'.$langs->trans("Name").'</td>';
+print '<td>'.$langs->trans("Description").'</td>';
+print '<td class="center" width="60">'.$langs->trans("Status")."</td>\n";
+print '<td class="center" width="60">'.$langs->trans("Default")."</td>\n";
+print '<td class="center" width="38">'.$langs->trans("ShortInfo").'</td>';
+print '<td class="center" width="38">'.$langs->trans("Preview").'</td>';
+print "</tr>\n";
+
+clearstatcache();
+
+foreach ($dirmodels as $reldir) {
+	foreach (array('', '/doc') as $valdir) {
+		$realpath = $reldir."core/modules/condensedorders".$valdir;
+		$dir = dol_buildpath($realpath);
+
+		if (is_dir($dir)) {
+			$handle = opendir($dir);
+			if (is_resource($handle)) {
+				$filelist = array();
+				while (($file = readdir($handle)) !== false) {
+					$filelist[] = $file;
+				}
+				closedir($handle);
+				arsort($filelist);
+
+				foreach ($filelist as $file) {
+					if (preg_match('/\.modules\.php$/i', $file) && preg_match('/^(pdf_|doc_)/', $file)) {
+						if (file_exists($dir.'/'.$file)) {
+							$name = substr($file, 4, dol_strlen($file) - 16);
+							$classname = substr($file, 0, dol_strlen($file) - 12);
+
+							require_once $dir.'/'.$file;
+							$module = new $classname($db);
+
+							$modulequalified = 1;
+							if ($module->version == 'development' && getDolGlobalInt('MAIN_FEATURES_LEVEL') < 2) {
+								$modulequalified = 0;
+							}
+							if ($module->version == 'experimental' && getDolGlobalInt('MAIN_FEATURES_LEVEL') < 1) {
+								$modulequalified = 0;
+							}
+
+							if ($modulequalified) {
+								print '<tr class="oddeven"><td width="100">';
+								print(empty($module->name) ? $name : $module->name);
+								print "</td><td>\n";
+								if (method_exists($module, 'info')) {
+									print $module->info($langs);
+								} else {
+									print $module->description;
+								}
+								print '</td>';
+
+								// Active
+								if (in_array($name, $def)) {
+									print '<td class="center">'."\n";
+									print '<a class="reposition" href="'.$_SERVER["PHP_SELF"].'?action=del&token='.newToken().'&value='.urlencode($name).'">';
+									print img_picto($langs->trans("Enabled"), 'switch_on');
+									print '</a>';
+									print '</td>';
+								} else {
+									print '<td class="center">'."\n";
+									print '<a class="reposition" href="'.$_SERVER["PHP_SELF"].'?action=set&token='.newToken().'&value='.urlencode($name).'&scan_dir='.urlencode($module->scandir).'&label='.urlencode($module->name).'">'.img_picto($langs->trans("Disabled"), 'switch_off').'</a>';
+									print "</td>";
+								}
+								$conf->global->{'CONDENSEDORDERS_ADDON_PDF'} = 'brahe';
+								// Default
+								print '<td class="center">';
+								if (getDolGlobalString('CONDENSEDORDERS_ADDON_PDF') == $name) {
+									print img_picto($langs->trans("Default"), 'on');
+								} else {
+									print '<a class="reposition" href="'.$_SERVER["PHP_SELF"].'?action=setdoc&token='.newToken().'&value='.urlencode($name).'&scan_dir='.urlencode($module->scandir).'&label='.urlencode($module->name).'" alt="'.$langs->trans("Default").'">'.img_picto($langs->trans("Disabled"), 'off').'</a>';
+								}
+								print '</td>';
+
+								// Info
+								$htmltooltip = ''.$langs->trans("Name").': '.$module->name;
+								$htmltooltip .= '<br>'.$langs->trans("Type").': '.($module->type ? $module->type : $langs->trans("Unknown"));
+								if ($module->type == 'pdf') {
+									$htmltooltip .= '<br>'.$langs->trans("Width").'/'.$langs->trans("Height").': '.$module->page_largeur.'/'.$module->page_hauteur;
+								}
+								$htmltooltip .= '<br>'.$langs->trans("Path").': '.preg_replace('/^\//', '', $realpath).'/'.$file;
+
+								$htmltooltip .= '<br><br><u>'.$langs->trans("FeaturesSupported").':</u>';
+								$htmltooltip .= '<br>'.$langs->trans("Logo").': '.yn($module->option_logo, 1, 1);
+								$htmltooltip .= '<br>'.$langs->trans("PaymentMode").': '.yn($module->option_modereg, 1, 1);
+								$htmltooltip .= '<br>'.$langs->trans("PaymentConditions").': '.yn($module->option_condreg, 1, 1);
+								$htmltooltip .= '<br>'.$langs->trans("MultiLanguage").': '.yn($module->option_multilang, 1, 1);
+								//$htmltooltip .= '<br>'.$langs->trans("Discounts").': '.yn($module->option_escompte,1,1);
+								//$htmltooltip .= '<br>'.$langs->trans("CreditNote").': '.yn($module->option_credit_note,1,1);
+								$htmltooltip .= '<br>'.$langs->trans("WatermarkOnDraftOrders").': '.yn($module->option_draft_watermark, 1, 1);
+
+
+								print '<td class="center">';
+								print $form->textwithpicto('', $htmltooltip, 1, 0);
+								print '</td>';
+
+								// Preview
+								print '<td class="center">';
+								if ($module->type == 'pdf') {
+									print '<a href="'.$_SERVER["PHP_SELF"].'?action=specimen&module='.$name.'">'.img_object($langs->trans("Preview"), 'pdf').'</a>';
+								} else {
+									print img_object($langs->trans("PreviewNotAvailable"), 'generic');
+								}
+								print '</td>';
+
+								print "</tr>\n";
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+print '</table>';
+print '</div>';
 
 // Page end
 print dol_get_fiche_end();

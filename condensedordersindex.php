@@ -57,6 +57,9 @@ if (!$res) {
 }
 
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
+require_once DOL_DOCUMENT_ROOT.'/expedition/class/expedition.class.php';
+require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+require_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
 
 // Load translation files required by the page
 $langs->loadLangs(array("condensedorders@condensedorders"));
@@ -94,13 +97,15 @@ if (isset($user->socid) && $user->socid > 0) {
 
 // None
 
-
 /*
  * View
  */
 
 $form = new Form($db);
 $formfile = new FormFile($db);
+$comm = new Commande($db);
+$prod = new Product($db);
+$expe = new Expedition($db); 
 
 llxHeader("", $langs->trans("CondensedOrdersArea"), '', '', 0, 0, '', '', '', 'mod-condensedorders page-index');
 
@@ -109,19 +114,19 @@ print load_fiche_titre($langs->trans("CondensedOrdersArea"), '', 'condensedorder
 print '<div class="fichecenter"><div class="fichethirdleft">';
 
 
-/* BEGIN MODULEBUILDER DRAFT MYOBJECT
+
 // Draft MyObject
-if (isModEnabled('condensedorders') && $user->hasRight('condensedorders', 'read')) {
+if (True) {
 	$langs->load("orders");
 
-	$sql = "SELECT c.rowid, c.ref, c.ref_client, c.total_ht, c.tva as total_tva, c.total_ttc, s.rowid as socid, s.nom as name, s.client, s.canvas";
-	$sql.= ", s.code_client";
-	$sql.= " FROM ".MAIN_DB_PREFIX."commande as c";
-	$sql.= ", ".MAIN_DB_PREFIX."societe as s";
-	$sql.= " WHERE c.fk_soc = s.rowid";
-	$sql.= " AND c.fk_statut = 0";
-	$sql.= " AND c.entity IN (".getEntity('commande').")";
-	if ($socid)	$sql.= " AND c.fk_soc = ".((int) $socid);
+	$sql = "SELECT e.rowid as expe_id, e.ref as expe_ref, e.fk_statut as expe_statut, p.rowid as prod_id, p.ref as prod_ref, p.description as prod_descr, p.label as prod_label, p.tobuy as prod_tobuy, p.tosell as prod_tosell, p.entity as prod_entity, ed.qty as ed_qty, c.rowid as comm_id, c.ref as comm_ref, c.fk_statut as comm_statut";
+	$sql.= " FROM ".MAIN_DB_PREFIX."expeditiondet as ed";
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."expedition as e ON e.rowid = ed.fk_expedition";
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."commandedet as cd ON cd.rowid = ed.fk_elementdet";
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."commande as c ON cd.fk_commande = c.rowid";
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product as p ON p.rowid = cd.fk_product";
+	$sql.= " WHERE e.fk_statut = 1";
+	$sql.= " ORDER BY p.rowid DESC";
 
 	$resql = $db->query($sql);
 	if ($resql)
@@ -131,37 +136,62 @@ if (isModEnabled('condensedorders') && $user->hasRight('condensedorders', 'read'
 
 		print '<table class="noborder centpercent">';
 		print '<tr class="liste_titre">';
-		print '<th colspan="3">'.$langs->trans("DraftMyObjects").($num?'<span class="badge marginleftonlyshort">'.$num.'</span>':'').'</th></tr>';
+		print '<th class="nowrap">'.$langs->trans("EXPEDITION_REF").($num?'<span class="badge marginleftonlyshort">'.$num.'</span>':'').'</th>';
+		print '<th class="nowrap">'.$langs->trans("PRODUCT_REF").($num?'<span class="badge marginleftonlyshort">'.$num.'</span>':'').'</th>';
+		print '<th class="nowrap">'.$langs->trans("PRODUCT_LABEL").($num?'<span class="badge marginleftonlyshort">'.$num.'</span>':'').'</th>';
+		print '<th class="nowrap">'.$langs->trans("QTY").($num?'<span class="badge marginleftonlyshort">'.$num.'</span>':'').'</th>';
+		print '<th class="nowrap">'.$langs->trans("QTY_TOTALE").($num?'<span class="badge marginleftonlyshort">'.$num.'</span>':'').'</th>';
 
-		$var = true;
+		print '</tr>';
+
 		if ($num > 0)
 		{
 			$i = 0;
+			$obj = $db->fetch_object($resql);
 			while ($i < $num)
 			{
 
-				$obj = $db->fetch_object($resql);
-				print '<tr class="oddeven"><td class="nowrap">';
+				
+				$expe->id = $obj->expe_id;
+				$expe->ref = $obj->expe_ref;
+				$expe->statut = $obj->expe_statut;
 
-				$myobjectstatic->id=$obj->rowid;
-				$myobjectstatic->ref=$obj->ref;
-				$myobjectstatic->ref_client=$obj->ref_client;
-				$myobjectstatic->total_ht = $obj->total_ht;
-				$myobjectstatic->total_tva = $obj->total_tva;
-				$myobjectstatic->total_ttc = $obj->total_ttc;
+				$prod->id = $obj->prod_id;
+				$prod->ref = $obj->prod_ref;
+				$prod->description = $obj->prod_descr;
+				$prod->label = $obj->prod_label;
+				$prod->status_buy = $obj->prod_tobuy;
+				$prod->status = $obj->prod_tosell;
+				$prod->entity = $obj->prod_entity;
 
-				print $myobjectstatic->getNomUrl(1);
+				$comm->id = $obj->comm_id;
+				$comm->ref = $obj->comm_ref;
+				$comm->statut = $obj->comm_statut;
+
+				print '<tr class="oddeven">';
+				// Case pour l'expédition avec nom cliquable
+				print '<td class="nowrap" data-ker="ref">' . $expe->getNomUrl(1, '', 100, 0, 1, 1) . '</td>';
+				// Case pour le produit avec nom cliquable
+				print '<td class="nowrap">' . $prod->getNomUrl(1) . '</td>';
+				// Case avec le nom du produit (peut-être pas utile)
+				print '<td class="tdoverflowmax200">' . $obj->prod_label . '</td>';
+				// Boucle pour afficher les quantités du produit dans chaque commande
+				print '<td class="tdoverflowmax200">';
+				$qty = 0;
+				while($prod->id == $obj->prod_id && $i < $num){
+					// On affiche la quantité dans chaque commande concerné avec lien cliquable vers la commande
+					print '<div>'. $obj->ed_qty .' venant de '. $comm->getNomUrl(1, '', 100, 0, 1, 1) .'</div>';
+					// On passe à la commande suivante et on met à jour la commande pour que le lien change aussi
+					$comm->id = $obj->comm_id;
+					$comm->ref = $obj->comm_ref;
+					$comm->statut = $obj->comm_statut;
+					$i++;
+					$qty+= $obj->ed_qty; // Calcul de la quantité totale du produit concerné
+					$obj = $db->fetch_object($resql);
+				}
 				print '</td>';
-				print '<td class="nowrap">';
-				print '</td>';
-				print '<td class="right" class="nowrap">'.price($obj->total_ttc).'</td></tr>';
-				$i++;
-				$total += $obj->total_ttc;
-			}
-			if ($total>0)
-			{
-
-				print '<tr class="liste_total"><td>'.$langs->trans("Total").'</td><td colspan="2" class="right">'.price($total)."</td></tr>";
+				// Colonne pour afficher la quantité totale du produit
+				print '<td class="nowrap">' . $qty . '</td>';
 			}
 		}
 		else
@@ -178,7 +208,6 @@ if (isModEnabled('condensedorders') && $user->hasRight('condensedorders', 'read'
 		dol_print_error($db);
 	}
 }
-END MODULEBUILDER DRAFT MYOBJECT */
 
 
 print '</div><div class="fichetwothirdright">';

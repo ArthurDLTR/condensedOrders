@@ -26,35 +26,35 @@ ModuleCondensedOrdersDesc = CondensedOrders description
 # Admin page
 #
 CondensedOrdersSetup = CondensedOrders setup
-Settings = Settings
+Settings = Paramètres
 CondensedOrdersSetupPage = CondensedOrders setup page
-NewSection=New section
+NewSection= Nouvelle Section
 CONDENSEDORDERS_MYPARAM1 = My param 1
 CONDENSEDORDERS_MYPARAM1Tooltip = My param 1 tooltip
 CONDENSEDORDERS_MYPARAM2=My param 2
 CONDENSEDORDERS_MYPARAM2Tooltip=My param 2 tooltip
-
+CONDENSEDORDERS_ADDON = Activer le pdf pour le module
 
 #
 # About page
 #
-About = About
-CondensedOrdersAbout = About CondensedOrders
+About = A propos
+CondensedOrdersAbout = A propos de CondensedOrders
 CondensedOrdersAboutPage = CondensedOrders about page
 
 #
 # Sample page
 #
-CondensedOrdersArea = Home CondensedOrders
-MyPageName = My page name
+CondensedOrdersArea = Maison CondensedOrders
+MyPageName = Mon nom de page
 
 #
 # modClass page
 #
-CondensedOrdersDescription = Module to compile and create a summary of orders to facilitate their preparation
+CondensedOrdersDescription = Module pour compiler et créer des résumés de plusieurs commandes afin d'en faciliter la préparation
 
 #
 # Condensed Orders page
 #
-EXPEDITION_REF = Reference of the shipping
-QTY_TOTALE = Totale quantity
+EXPEDITION_REF = Référence de l'expédition
+QTY_TOTALE = Quantité totale
