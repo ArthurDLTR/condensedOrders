@@ -76,6 +76,10 @@ $type = 'myobject';
 $error = 0;
 $setupnotempty = 0;
 
+if (!getDolGlobalString('CONDENSEDORDERS_ADDON')){
+	$conf->global->CONDENSEDORDERS_ADDON = 'mod_condensedorders_brahe';
+}
+
 // Access control
 if (!$user->admin) {
 	accessforbidden();
@@ -180,10 +184,6 @@ if ($tmpobjectkey && !array_key_exists($tmpobjectkey, $myTmpObjects)) {
 	accessforbidden('Bad value for object. Hack attempt ?');
 }
 
-if (!getDolGlobalString('CONDENSEDORDERS_ADDON')){
-	$conf->global->CONDENSEDORDERS_ADDON = 'brahe';
-}
-
 /*
  * Actions
  */
@@ -195,27 +195,11 @@ if (versioncompare(explode('.', DOL_VERSION), array(15)) < 0 && $action == 'upda
 
 include DOL_DOCUMENT_ROOT.'/core/actions_setmoduleoptions.inc.php';
 
-if ($action == 'updateMask') {
-	$maskconst = GETPOST('maskconst', 'aZ09');
-	$maskvalue = GETPOST('maskvalue', 'alpha');
-
-	if ($maskconst && preg_match('/_MASK$/', $maskconst)) {
-		$res = dolibarr_set_const($db, $maskconst, $maskvalue, 'chaine', 0, '', $conf->entity);
-		if (!($res > 0)) {
-			$error++;
-		}
-	}
-
-	if (!$error) {
-		setEventMessages($langs->trans("SetupSaved"), null, 'mesgs');
-	} else {
-		setEventMessages($langs->trans("Error"), null, 'errors');
-	}
-} elseif ($action == 'specimen' && $tmpobjectkey) {
+if ($action == 'specimen' && $tmpobjectkey) {
 	$modele = GETPOST('module', 'alpha');
 
-	$className = $myTmpObjects[$tmpobjectkey]['class'];
-	$tmpobject = new $className($db);
+	
+	$tmpobject = new CondensedOrders($db);
 	$tmpobject->initAsSpecimen();
 
 	// Search template files
@@ -260,34 +244,26 @@ if ($action == 'updateMask') {
 } elseif ($action == 'del') {
 	$ret = delDocumentModel($value, $type);
 	if ($ret > 0) {
-		if (!empty($tmpobjectkey)) {
-			$constforval = 'CONDENSEDORDERS_ADDON_PDF';
-			if (getDolGlobalString($constforval) == "$value") {
-				dolibarr_del_const($db, $constforval, $conf->entity);
-			}
+		if($conf->global->CONDENSEDORDERS_ADDON_PDF == "$value"){
+			dolibarr_del_const($db, $constforval, $conf->entity);
 		}
 	}
 } elseif ($action == 'setdoc') {
 	// Set or unset default model
-	if (!empty($tmpobjectkey)) {
-		$constforval = 'CONDENSEDORDERS_ADDON_PDF';
-		if (dolibarr_set_const($db, $constforval, $value, 'chaine', 0, '', $conf->entity)) {
-			// The constant that was read before the new set
-			// We therefore requires a variable to have a coherent view
-			$conf->global->{$constforval} = $value;
-		}
+	if (dolibarr_set_const($db, 'CONDENSEDORDERS_ADDON_PDF', $value, 'chaine', 0, '', $conf->entity)) {
+		// The constant that was read before the new set
+		// We therefore requires a variable to have a coherent view
+		$conf->global->CONDENSEDORDERS_ADDON_PDF = $value;
+	}
 
-		// We disable/enable the document template (into llx_document_model table)
-		$ret = delDocumentModel($value, $type);
-		if ($ret > 0) {
-			$ret = addDocumentModel($value, $type, $label, $scandir);
-		}
+	// We disable/enable the document template (into llx_document_model table)
+	$ret = delDocumentModel($value, $type);
+	if ($ret > 0) {
+		$ret = addDocumentModel($value, $type, $label, $scandir);
 	}
-} elseif ($action == 'unsetdoc') {
-	if (!empty($tmpobjectkey)) {
-		$constforval = 'CONDENSEDORDERS_'.strtoupper($tmpobjectkey).'_ADDON_PDF';
-		dolibarr_del_const($db, $constforval, $conf->entity);
-	}
+
+} elseif ($action == 'unsetdoc') {	
+	dolibarr_del_const($db, 'CONDENSEDORDERS_ADDON_PDF', $conf->entity);
 }
 
 $action = 'edit';

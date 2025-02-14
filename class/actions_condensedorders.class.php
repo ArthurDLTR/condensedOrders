@@ -20,14 +20,16 @@
  * 	\defgroup   condensedorders     Module CondensedOrders
  *  \brief      CondensedOrders module descriptor.
  *
- *  \file       htdocs/condensedorders/class/modCondensedOrders.class.php
+ *  \file       htdocs/custom/condensedorders/class/modCondensedOrders.class.php
  *  \ingroup    condensedorders
  *  \brief      Description and activation file for module CondensedOrders
  */
 
+ require_once DOL_DOCUMENT_ROOT.'/custom/condensedorders/core/modules/modCondensedOrders.class.php';
+
 class ActionsCondensedOrders {
 
-    /**
+    /** 
      * Overloading the addMoreActions function
      * @param   parameters      meta data of the hook
      * @param   object          the object you want to process
@@ -52,9 +54,64 @@ class ActionsCondensedOrders {
      * @param   action          current action
      * @return  void
      */
+    
     function showDocuments($parameters, $object, $action = 'create'){
     //function doActions($parameters, $object, $action = 'create'){
+        global $db, $conf;
+
+        $outputlangs = new Translate("", $conf);
+        $outputlangs->setDefaultLang($newlang);
+        $obj_tmp = new modCondensedOrders($db);
+
+
+        if (GETPOST('massaction') == 'CREATE_CONDENSED_ORDERS'){
+            // PDF Generation
+            $arrayOrder = GETPOST("toselect", "array");
+            $arrayLineExpe = array();
+            $arrayLineProduct = array();
+            if(count($arrayOrder) > 0){
+                foreach ($arrayOrder as $key => $value){
+                    $expe = new Expedition($db);
+                    $expe->fetch($value);
+                    print $expe->ref.' : '.count($expe->lines). ' lignes <br>';
+                    // $arrayOrder[$key] = (int) $value;
+                    foreach ($expe->lines as $key => $line){
+                            print 'Produit : '.$line->product_ref.' Qty : '.$line->qty.'<br>';
+                        if ($line->fk_product > 0 && !$line->product_type){
+                            if(!isset($arrayLineExpe[$line->fk_product])){
+                                $arrayLineExpe[$line->fk_product] = array(
+                                    'ref' => $line->product_ref,
+                                    'qty' => $line->qty
+                                );
+                            } else {
+                                $arrayLineExpe[$line->fk_product]['qty'] = $arrayLineExpe[$line->fk_product]['qty'] + $line->qty;
+                            }
+
+                            
+                        }
+                    }
+                }
+                // var_dump($arrayLineExpe);
+                // $condensedOrders = new CondensedOrders($db);
+                // $condensedOrders->generatePDF($arrayOrder);
+            }
+        }
+        
+
+        return 0;
+    }
+
+    // Fonction de déclenchement de la génération du pdf
+    function doActions($parameters, $object, $action = 'create')
+    {
+        
         global $db;
+        global $conf;
+
+        $outputlangs = new Translate("", $conf);
+        $outputlangs->setDefaultLang($newlang);
+        $obj_tmp = new modCondensedOrders($db);
+
         if (GETPOST('massaction') == 'CREATE_CONDENSED_ORDERS'){
             // PDF Generation
             $arrayOrder = GETPOST("toselect", "array");
@@ -72,18 +129,6 @@ class ActionsCondensedOrders {
                 // $condensedOrders = new CondensedOrders($db);
                 // $condensedOrders->generatePDF($arrayOrder);
             }
-        }   
-    }
-
-    // Fonction de déclenchement de la génération du pdf
-    function doActions($parameters, $object, $action = 'create')
-    {
-        global $db;
-        global $conf;
-
-        if (GETPOST('massaction') == 'CREATE_CONDENSED_ORDERS'){
-            dol_include_once('/condensedorders/class/condensedorders.class.php');
-            $obj = new CondensedOrders($db);
         }
 
         if(empty($hidedetails)){
@@ -104,6 +149,17 @@ class ActionsCondensedOrders {
             foreach($arrayOrder as $key => $value) {
                 $obj_static = new Expedition($db);
             }
+        }
+
+        if (GETPOST('massaction') == 'CREATE_CONDENSED_ORDERS'){
+            dol_include_once('/condensedorders/class/condensedorders.class.php');
+            $obj = new CondensedOrders($db);
+            $obj_tmp->model_pdf = 'brahe';
+            $obj_tmp->lines = $arrayLineOrder;
+            $obj_tmp->products = $arrayLineProduct;
+            //print 'modele : '.$obj_tmp->model_pdf.'\n lignes : '.$obj_tmp->lines.'\nproduits : '.$obj_tmp->products;
+            //$result = $obj_tmp->generateDocument('', $outputlangs, $hidedetails, $hidedesc, $hideref, $moreparams);
+            //print $obj_tmp;
         }
     }
 }

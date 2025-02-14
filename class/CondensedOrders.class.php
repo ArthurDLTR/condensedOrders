@@ -23,12 +23,12 @@
  *  \ingroup    condensedorders
  *  \brief      Description and activation file for module CondensedOrders
  */
-
+require_once DOL_DOCUMENT_ROOT."/core/modules/DolibarrModules.class.php";
 
 /**
  *  Description and activation class for module CondensedOrders
  */
-class CondensedOrders {
+class CondensedOrders extends DolibarrModules {
 
     /**
 	 * Constructor. Define names, constants, directories, boxes, permissions
