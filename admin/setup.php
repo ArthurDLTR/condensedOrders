@@ -56,6 +56,7 @@ global $langs, $user;
 // Libraries
 require_once DOL_DOCUMENT_ROOT."/core/lib/admin.lib.php";
 require_once '../lib/condensedorders.lib.php';
+require_once '../core/modules/condensedorders/doc/pdf_brahe.modules.php';
 
 // Translations
 $langs->loadLangs(array("admin", "condensedorders@condensedorders"));
@@ -78,6 +79,10 @@ $setupnotempty = 0;
 
 if (!getDolGlobalString('CONDENSEDORDERS_ADDON')){
 	$conf->global->CONDENSEDORDERS_ADDON = 'mod_condensedorders_brahe';
+}
+
+if (!getDolGlobalString('CONDENSEDORDERS_ADDON_PDF')){
+	$conf->global->CONDENSEDORDERS_ADDON_PDF = 'brahe';
 }
 
 // Access control
@@ -199,7 +204,7 @@ if ($action == 'specimen' && $tmpobjectkey) {
 	$modele = GETPOST('module', 'alpha');
 
 	
-	$tmpobject = new CondensedOrders($db);
+	$tmpobject = new Expedition($db);
 	$tmpobject->initAsSpecimen();
 
 	// Search template files
@@ -215,12 +220,13 @@ if ($action == 'specimen' && $tmpobjectkey) {
 			break;
 		}
 	}
-
+	
 	if ($filefound) {
 		require_once $file;
 
-		$module = new $className($db);
-
+		$module = new pdf_brahe($db);
+		dol_syslog("Valeur de retour du write_file() :  ".$module->write_file($tmpobject, $langs));
+			
 		if ($module->write_file($tmpobject, $langs) > 0) {
 			header("Location: ".DOL_URL_ROOT."/document.php?modulepart=condensedorders-".strtolower($tmpobjectkey)."&file=SPECIMEN.pdf");
 			return;
@@ -291,7 +297,8 @@ print dol_get_fiche_head($head, 'settings', $langs->trans($title), -1, "condense
 
 // Setup page goes here
 echo '<span class="opacitymedium">'.$langs->trans("CondensedOrdersSetupPage").'</span><br><br>';
-
+// print "Location: ".DOL_URL_ROOT."/document.php?modulepart=condensedorders-".strtolower($testprint)."&file=SPECIMEN.pdf";
+			
 
 /*if ($action == 'edit') {
  print $formSetup->generateOutput(true);
@@ -650,7 +657,7 @@ foreach ($dirmodels as $reldir) {
 									print '<a class="reposition" href="'.$_SERVER["PHP_SELF"].'?action=set&token='.newToken().'&value='.urlencode($name).'&scan_dir='.urlencode($module->scandir).'&label='.urlencode($module->name).'">'.img_picto($langs->trans("Disabled"), 'switch_off').'</a>';
 									print "</td>";
 								}
-								$conf->global->{'CONDENSEDORDERS_ADDON_PDF'} = 'brahe';
+								$conf->global->CONDENSEDORDERS_ADDON_PDF = 'brahe';
 								// Default
 								print '<td class="center">';
 								if (getDolGlobalString('CONDENSEDORDERS_ADDON_PDF') == $name) {

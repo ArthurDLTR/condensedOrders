@@ -154,12 +154,14 @@ class ActionsCondensedOrders {
         if (GETPOST('massaction') == 'CREATE_CONDENSED_ORDERS'){
             dol_include_once('/condensedorders/class/condensedorders.class.php');
             $obj = new CondensedOrders($db);
-            $obj_tmp->model_pdf = 'brahe';
-            $obj_tmp->lines = $arrayLineOrder;
-            $obj_tmp->products = $arrayLineProduct;
+            $obj->model_pdf = 'brahe';
+            $obj->lines = $arrayLineOrder;
+            $obj->products = $arrayLineProduct;
             //print 'modele : '.$obj_tmp->model_pdf.'\n lignes : '.$obj_tmp->lines.'\nproduits : '.$obj_tmp->products;
-            //$result = $obj_tmp->generateDocument('', $outputlangs, $hidedetails, $hidedesc, $hideref, $moreparams);
+            $result = $obj->generateDocument($obj->model_pdf, $outputlangs, $hidedetails, $hidedesc, $hideref, $moreparams);
             //print $obj_tmp;
         }
     }
+
+    
 }

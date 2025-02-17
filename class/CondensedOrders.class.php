@@ -23,13 +23,34 @@
  *  \ingroup    condensedorders
  *  \brief      Description and activation file for module CondensedOrders
  */
-require_once DOL_DOCUMENT_ROOT."/core/modules/DolibarrModules.class.php";
+require_once DOL_DOCUMENT_ROOT.'/core/class/commonobject.class.php';
 
 /**
  *  Description and activation class for module CondensedOrders
  */
-class CondensedOrders extends DolibarrModules {
+class CondensedOrders extends CommonObject {
 
+	/**
+	 * @var string 		The type of originating object. Combined with $origin_id, it allows to reload $origin_object
+	 * @see fetch_origin()
+	 */
+	public $origin_type;
+
+	/**
+	 * @var int 		The id of originating object. Combined with $origin_type, it allows to reload $origin_object
+	 * @see fetch_origin()
+	 */
+	public $origin_id;
+
+	/**
+	 * @var	?CommonObject	Origin object. This is set by fetch_origin() from this->origin_type and this->origin_id.
+	 */
+	public $origin_object;
+	
+	/**
+	 * @var string name of pdf model
+	 */
+	public $model_pdf;
     /**
 	 * Constructor. Define names, constants, directories, boxes, permissions
 	 *
@@ -40,5 +61,40 @@ class CondensedOrders extends DolibarrModules {
 		global $langs, $conf;
 
 		$this->db = $db;
+		$this->origin_type = 'commande';
+		$this->origin_id = 1;
     }
+
+	/**
+	 *  Create a document onto disk according to template module.
+	 *
+	 *  @param	    string		$modele			Force the model to using ('' to not force)
+	 *  @param		Translate	$outputlangs	object lang to use for translations
+	 *  @param      int			$hidedetails    Hide details of lines
+	 *  @param      int			$hidedesc       Hide description
+	 *  @param      int			$hideref        Hide ref
+	 *  @param      null|array  $moreparams     Array to provide more information
+	 *  @return     int         				0 if KO, 1 if OK
+	 */
+	public function generateDocument($modele, $outputlangs, $hidedetails = 0, $hidedesc = 0, $hideref = 0, $moreparams = null)
+	{
+		$outputlangs->load("products");
+
+		if (!dol_strlen($modele)) {
+			$modele = 'brahe';
+
+			if (!empty($this->model_pdf)) {
+				$modele = $this->model_pdf;
+			} elseif (getDolGlobalString('CONDENSEDORDERS_ADDON_PDF')) {
+				$modele = getDolGlobalString('CONDENSEDORDERS_ADDON_PDF');
+			}
+		}
+
+		$modelpath = "custom/condensedorders/core/modules/condensedorders/doc/";
+
+		$this->fetch_origin();
+		dol_syslog("DEBUG : Génération du document pour préparation de commande");
+
+		return $this->commonGenerateDocument($modelpath, $modele, $outputlangs, $hidedetails, $hidedesc, $hideref, $moreparams);
+	}
 }

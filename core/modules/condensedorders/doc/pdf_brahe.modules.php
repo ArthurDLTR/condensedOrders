@@ -25,9 +25,10 @@ require_once DOL_DOCUMENT_ROOT.'/core/modules/expedition/modules_expedition.php'
 require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
 
-class pdf_brahe extends ModelePDFExpedition
+class pdf_brahe extends ModelePdfExpedition
 {
     /**
      * @var DoliDB database of the dolibarr
@@ -138,7 +139,7 @@ class pdf_brahe extends ModelePDFExpedition
 		}
 
 		if ($conf->expedition->multidir_output[$conf->entity]) {
-            $diroutputmassaction = $conf->expedition->multidir_output[$conf->entity].'/sending/temp/massgeneration'.$user->id;
+            $diroutputmassaction = $conf->expedition->multidir_output[$conf->entity].'/sending/temp/massgeneration/'.$user->id;
 
 			// Definition of $dir and $file
             $filename = 'MULTI_BL';
@@ -147,7 +148,7 @@ class pdf_brahe extends ModelePDFExpedition
 
 			if (!file_exists($diroutputmassaction)) {
 				if (dol_mkdir($diroutputmassaction) < 0) {
-					$this->error = $langs->transnoentities("ErrorCanNotCreateDir", $dir);
+					$this->error = $langs->transnoentities("ErrorCanNotCreateDir", $diroutputmassaction);
 					return 0;
 				}
 			}
@@ -155,6 +156,8 @@ class pdf_brahe extends ModelePDFExpedition
 
 		dol_syslog("nom du doc : ".$file);
 		dol_syslog("nom du dir : ".$diroutputmassaction);
+		dol_syslog("Resultat du test pour savoir si le dossier existe : ".file_exists($diroutputmassaction));
+		dol_syslog("Resultat du test pour savoir si le dossier existe : ".dol_mkdir($diroutputmassaction));
 
 		$nblines = count($object->lines);
 
@@ -207,7 +210,7 @@ class pdf_brahe extends ModelePDFExpedition
 			$this->posxpicture = $this->posxweightvol;
 		}
 
-        if (file_exists($dir)) {
+        if (file_exists($diroutputmassaction)) {
             // Add pdfgeneration hook
             if (!is_object($hookmanager)) {
                 include_once DOL_DOCUMENT_ROOT.'/core/class/hookmanager.class.php';
@@ -1143,7 +1146,7 @@ class pdf_brahe extends ModelePDFExpedition
 				$thirdparty = $object->thirdparty;
 			}
 
-			$carac_client_name = pdfBuildThirdpartyName($thirdparty, $outputlangs);
+			$carac_client_name = 'Nom_client_test'; //pdfBuildThirdpartyName($thirdparty, $outputlangs);
 
 			$carac_client = pdf_build_address($outputlangs, $this->emetteur, $object->thirdparty, (!empty($object->contact) ? $object->contact : null), $usecontact, 'targetwithdetails', $object);
 
