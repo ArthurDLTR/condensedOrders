@@ -154,10 +154,10 @@ class pdf_brahe extends ModelePdfExpedition
 			}
         }
 
-		dol_syslog("nom du doc : ".$file);
-		dol_syslog("nom du dir : ".$diroutputmassaction);
-		dol_syslog("Resultat du test pour savoir si le dossier existe : ".file_exists($diroutputmassaction));
-		dol_syslog("Resultat du test pour savoir si le dossier existe : ".dol_mkdir($diroutputmassaction));
+		// dol_syslog("nom du doc : ".$file);
+		// dol_syslog("nom du dir : ".$diroutputmassaction);
+		// dol_syslog("Resultat du test pour savoir si le dossier existe : ".file_exists($diroutputmassaction));
+		// dol_syslog("Resultat du test pour savoir si le dossier existe : ".dol_mkdir($diroutputmassaction));
 
 		$nblines = count($object->lines);
 
@@ -222,7 +222,7 @@ class pdf_brahe extends ModelePdfExpedition
             $reshook = $hookmanager->executeHooks('beforePDFCreation', $parameters, $object, $action); // Note that $action and $object may have been modified by some hooks
 
             // Set nblines with the new facture lines content after hook
-            $nblines = is_array($object->lines) ? count($object->lines) : 0;
+            $nblines = count($object->products);
 
             $pdf = pdf_getInstance($this->format);
             $default_font_size = pdf_getPDFFontSize($outputlangs);
@@ -267,6 +267,7 @@ class pdf_brahe extends ModelePdfExpedition
 
             // New page
             $pdf->AddPage();
+			
             if (!empty($tplidx)) {
                 $pdf->useTemplate($tplidx);
             }
@@ -282,7 +283,7 @@ class pdf_brahe extends ModelePdfExpedition
             $tab_height = $this->page_hauteur - $tab_top - $heightforfooter - $heightforfreetext;
 
             $this->posxdesc = $this->marge_gauche + 1;
-
+			/*
             // Incoterm
             $height_incoterms = 0;
             if (isModEnabled('incoterm')) {
@@ -489,47 +490,18 @@ class pdf_brahe extends ModelePdfExpedition
                 }
             }
 
+			*/
             // Show barcode
             $height_barcode = 0;
             //$pdf->Rect($this->marge_gauche, $this->marge_haute, $this->page_largeur-$this->marge_gauche-$this->marge_droite, 30);
-            if (isModEnabled('barcode') && getDolGlobalString('BARCODE_ON_SHIPPING_PDF')) {
-                require_once DOL_DOCUMENT_ROOT.'/core/modules/barcode/doc/tcpdfbarcode.modules.php';
-
-                $encoding = 'QRCODE';
-                $module = new modTcpdfbarcode();
-                $barcode_path = '';
-                $result = 0;
-                if ($module->encodingIsSupported($encoding)) {
-                    $result = $module->writeBarCode($object->ref, $encoding);
-
-                    // get path of qrcode image
-                    $newcode = $object->ref;
-                    if (!preg_match('/^\w+$/', $newcode) || dol_strlen($newcode) > 32) {
-                        $newcode = dol_hash($newcode, 'md5');
-                    }
-                    $barcode_path = $conf->barcode->dir_temp . '/barcode_' . $newcode . '_' . $encoding . '.png';
-                }
-
-                if ($result > 0) {
-                    $tab_top -= 2;
-
-                    $pdf->Image($barcode_path, $this->marge_gauche, $tab_top, 20, 20);
-
-                    $nexY = $pdf->GetY();
-                    $height_barcode = 20;
-
-                    $tab_top += 22;
-                } else {
-                    $this->error = 'Failed to generate barcode';
-                }
-            }
+            
 
             // Use new auto column system
-            $this->prepareArrayColumnField($object, $outputlangs, $hidedetails, $hidedesc, $hideref);
+            //$this->prepareArrayColumnField($object, $outputlangs, $hidedetails, $hidedesc, $hideref);
 
             // Table simulation to know the height of the title line
             $pdf->startTransaction();
-            $this->pdfTabTitles($pdf, $tab_top, $tab_height, $outputlangs);
+            //$this->pdfTabTitles($pdf, $tab_top, $tab_height, $outputlangs);
             $pdf->rollbackTransaction(true);
 
 
@@ -539,6 +511,7 @@ class pdf_brahe extends ModelePdfExpedition
             $pageposbeforeprintlines = $pdf->getPage();
             $pagenb = $pageposbeforeprintlines;
             for ($i = 0; $i < $nblines; $i++) {
+				$obj_line = $obj->products[$i];
                 $curY = $nexY;
                 $pdf->SetFont('', '', $default_font_size - 1); // Into loop to work with multipage
                 $pdf->SetTextColor(0, 0, 0);
@@ -553,11 +526,22 @@ class pdf_brahe extends ModelePdfExpedition
                 $pdf->setPageOrientation('', 1, $heightforfooter + $heightforfreetext + $heightforinfotot); // The only function to edit the bottom margin of current page to set it.
                 $pageposbefore = $pdf->getPage();
 
+				// Description product
+				$soc_static = new Societe($this->db);
+				$soc_static->fetch($obj_line['qte_det']['soc']);
+
+
+				$pdf->writeHTMLCell(0, 0, $curX, $curY - 1, $obj_line['ref'], 0, 1, 0);
+				$pdf->MultiCell(50, 3, $obj_line['qte_det'], '', 'R');
+				$pdf->writeHTMLCell(0, 0, $curX + 145, $curY - 1, $obj_line['qte_tot'], 0, 1, 0);
+
+				/*
                 $showpricebeforepagebreak = 1;
                 $posYAfterImage = 0;
                 $posYAfterDescription = 0;
                 $heightforsignature = 0;
 
+				/*
                 if ($this->getColumnStatus('photo')) {
                     // We start with Photo of product line
                     if (isset($imglinesize['width']) && isset($imglinesize['height']) && ($curY + $imglinesize['height']) > ($this->page_hauteur - ($heightforfooter + $heightforfreetext + $heightforsignature + $heightforinfotot))) {	// If photo too high, we moved completely on new page
@@ -585,18 +569,20 @@ class pdf_brahe extends ModelePdfExpedition
                         $posYAfterImage = $curY + $imglinesize['height'];
                     }
                 }
+					*/
 
                 // Description of product line
-                if ($this->getColumnStatus('desc')) {
+				/*
+                if ($this->getColumnStatus('prod_ref')) {
                     $pdf->startTransaction();
 
-                    $this->printColDescContent($pdf, $curY, 'desc', $object, $i, $outputlangs, $hideref, $hidedesc);
+                    $this->printColDescContent($pdf, $curY, 'prod_ref', $object, $i, $outputlangs, $hideref, $hidedesc);
 
                     $pageposafter = $pdf->getPage();
                     if ($pageposafter > $pageposbefore) {	// There is a pagebreak
                         $pdf->rollbackTransaction(true);
 
-                        $this->printColDescContent($pdf, $curY, 'desc', $object, $i, $outputlangs, $hideref, $hidedesc);
+                        $this->printColDescContent($pdf, $curY, 'prod_ref', $object, $i, $outputlangs, $hideref, $hidedesc);
 
                         $pageposafter = $pdf->getPage();
                         $posyafter = $pdf->GetY();
@@ -624,7 +610,9 @@ class pdf_brahe extends ModelePdfExpedition
                     }
                     $posYAfterDescription = $pdf->GetY();
                 }
+					*/
 
+				/*
                 $nexY = max($pdf->GetY(), $posYAfterImage);
                 $pageposafter = $pdf->getPage();
 
@@ -656,8 +644,8 @@ class pdf_brahe extends ModelePdfExpedition
                 if (empty($object->lines[$i]->fk_product_type) && $object->lines[$i]->volume) {
                     $voltxt = round($object->lines[$i]->volume * $object->lines[$i]->qty_shipped, 5).' '.measuringUnitString(0, "volume", $object->lines[$i]->volume_units ? $object->lines[$i]->volume_units : 0, 1);
                 }
-
-
+				*/
+				/*
                 if ($this->getColumnStatus('weight')) {
                     $this->printStdColumnContent($pdf, $curY, 'weight', $weighttxt.(($weighttxt && $voltxt) ? '<br>' : '').$voltxt);
                     $nexY = max($pdf->GetY(), $nexY);
@@ -680,6 +668,20 @@ class pdf_brahe extends ModelePdfExpedition
 
                 if ($this->getColumnStatus('subprice')) {
                     $this->printStdColumnContent($pdf, $curY, 'subprice', price($object->lines[$i]->subprice, 0, $outputlangs));
+                    $nexY = max($pdf->GetY(), $nexY);
+                }
+					*/
+				/*
+                if ($this->getColumnStatus('prod_ref')) {
+                    $this->printStdColumnContent($pdf, $curY, 'prod_ref', price($object->lines[$i]->ref, 0, $outputlangs));
+                    $nexY = max($pdf->GetY(), $nexY);
+                }
+                if ($this->getColumnStatus('qte_det')) {
+                    $this->printStdColumnContent($pdf, $curY, 'qte_det', price($object->lines[$i]->qte_det, 0, $outputlangs));
+                    $nexY = max($pdf->GetY(), $nexY);
+                }
+                if ($this->getColumnStatus('qte_tot')) {
+                    $this->printStdColumnContent($pdf, $curY, 'qte_tot', price($object->lines[$i]->qte_tot, 0, $outputlangs));
                     $nexY = max($pdf->GetY(), $nexY);
                 }
 
@@ -739,8 +741,10 @@ class pdf_brahe extends ModelePdfExpedition
                         $this->_pagehead($pdf, $object, 0, $outputlangs);
                     }
                 }
+					*/
             }
 
+			/*
             // Show square
             if ($pagenb == 1) {
                 $this->_tableau($pdf, $tab_top, $this->page_hauteur - $tab_top - $heightforinfotot - $heightforfreetext - $heightforfooter, 0, $outputlangs, 0, 0);
@@ -758,6 +762,7 @@ class pdf_brahe extends ModelePdfExpedition
             if (method_exists($pdf, 'AliasNbPages')) {
                 $pdf->AliasNbPages();
             }
+				*/
 
             $pdf->Close();
 
@@ -855,27 +860,21 @@ class pdf_brahe extends ModelePdfExpedition
 			}
 		}
 
-		if ($this->getColumnStatus('desc')) {
-			$this->printStdColumnContent($pdf, $tab2_top, 'desc', $outputlangs->transnoentities("Total"));
+		if ($this->getColumnStatus('prod_ref')) {
+			$this->printStdColumnContent($pdf, $tab2_top, 'prod_ref', "Réf. produit");
 		}
 
 
-		if ($this->getColumnStatus('weight')) {
-			if ($totalWeighttoshow) {
-				$this->printStdColumnContent($pdf, $tab2_top, 'weight', $totalWeighttoshow);
-				$index++;
-			}
+		if ($this->getColumnStatus('qte_det')) {
+			$this->printStdColumnContent($pdf, $tab2_top, 'qte_det', "Details des commandes");
+		}
+		
 
-			if ($totalVolumetoshow) {
-				$y = $tab2_top + ($tab2_hl * $index);
-				$this->printStdColumnContent($pdf, $y, 'weight', $totalVolumetoshow);
-			}
+		if ($this->getColumnStatus('qty_tot')) {
+			$this->printStdColumnContent($pdf, $tab2_top, 'qty_tot', "Quantité totale");
 		}
 
-		if ($this->getColumnStatus('qty_asked') && $totalOrdered) {
-			$this->printStdColumnContent($pdf, $tab2_top, 'qty_asked', $totalOrdered);
-		}
-
+		/*
 		if ($this->getColumnStatus('qty_shipped') && $totalToShip) {
 			$this->printStdColumnContent($pdf, $tab2_top, 'qty_shipped', $totalToShip);
 		}
@@ -883,6 +882,7 @@ class pdf_brahe extends ModelePdfExpedition
 		if ($this->getColumnStatus('subprice')) {
 			$this->printStdColumnContent($pdf, $tab2_top, 'subprice', price($object->total_ht, 0, $outputlangs));
 		}
+			*/
 
 		$pdf->SetTextColor(0, 0, 0);
 
@@ -1248,12 +1248,12 @@ class pdf_brahe extends ModelePdfExpedition
 		 */
 
 		$rank = 0; // do not use negative rank
-		$this->cols['desc'] = array(
+		$this->cols['prod_ref'] = array(
 			'rank' => $rank,
-			'width' => false, // only for desc
+			'width' => 30, // only for desc
 			'status' => true,
 			'title' => array(
-				'textkey' => 'Designation', // use lang key is useful in somme case with module
+				'textkey' => 'Prod. ref', // use lang key is useful in somme case with module
 				'align' => 'L',
 				// 'textkey' => 'yourLangKey', // if there is no label, yourLangKey will be translated to replace label
 				// 'label' => ' ', // the final label
@@ -1285,28 +1285,29 @@ class pdf_brahe extends ModelePdfExpedition
 		}
 
 		$rank = $rank + 10;
-		$this->cols['weight'] = array(
+		$this->cols['qte_det'] = array(
 			'rank' => $rank,
 			'width' => 30, // in mm
 			'status' => true,
 			'title' => array(
-				'textkey' => 'WeightVolShort'
+				'textkey' => 'QteDet'
 			),
 			'border-left' => true, // add left line separator
 		);
 
 
 		$rank = $rank + 10;
-		$this->cols['subprice'] = array(
+		$this->cols['qte_tot'] = array(
 			'rank' => $rank,
 			'width' => 19, // in mm
-			'status' => getDolGlobalString('SHIPPING_PDF_DISPLAY_AMOUNT_HT') ? 1 : 0,
+			'status' => true,
 			'title' => array(
-				'textkey' => 'PriceUHT'
+				'textkey' => 'Qté totale'
 			),
 			'border-left' => true, // add left line separator
 		);
 
+		/*
 		$rank = $rank + 10;
 		$this->cols['totalexcltax'] = array(
 			'rank' => $rank,
@@ -1359,6 +1360,7 @@ class pdf_brahe extends ModelePdfExpedition
 				'align' => 'C',
 			),
 		);
+		*/
 
 		// Add extrafields cols
 		if (!empty($object->lines)) {

@@ -58,3 +58,11 @@ CondensedOrdersDescription = Module pour compiler et créer des résumés de plu
 #
 EXPEDITION_REF = Référence de l'expédition
 QTY_TOTALE = Quantité totale
+
+#
+# More translations for the shipping list 
+#
+CreateCondensedOrders = PDF Préparation commandes
+CreateCondensedTable = Table Préparation commandes
+CONDENSEDORDERS_TABLE = Afficher le tableau de résumé de préparation de commandes
+CONDENSED_TABLE = Tableau

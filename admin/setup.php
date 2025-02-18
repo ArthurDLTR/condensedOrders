@@ -126,7 +126,7 @@ $item = $formSetup->newItem('CONDENSEDORDERS_MYPARAM4');
 $item->setAsThirdpartyType();
 */
 // Setup conf for a selection of a boolean
-// $formSetup->newItem('CONDENSEDORDERS_ADDON')->setAsYesNo();
+$formSetup->newItem('CONDENSEDORDERS_TABLE')->setAsYesNo();
 /*
 // Setup conf for a selection of an email template of type thirdparty
 $formSetup->newItem('CONDENSEDORDERS_MYPARAM6')->setAsEmailTemplate('thirdparty');
@@ -225,14 +225,14 @@ if ($action == 'specimen' && $tmpobjectkey) {
 		require_once $file;
 
 		$module = new pdf_brahe($db);
-		dol_syslog("Valeur de retour du write_file() :  ".$module->write_file($tmpobject, $langs));
+		// dol_syslog("Valeur de retour du write_file() :  ".$module->write_file($tmpobject, $langs));
 			
 		if ($module->write_file($tmpobject, $langs) > 0) {
 			header("Location: ".DOL_URL_ROOT."/document.php?modulepart=condensedorders-".strtolower($tmpobjectkey)."&file=SPECIMEN.pdf");
 			return;
 		} else {
 			setEventMessages($module->error, null, 'errors');
-			dol_syslog($module->error, LOG_ERR);
+			// dol_syslog($module->error, LOG_ERR);
 		}
 	} else {
 		setEventMessages($langs->trans("ErrorModuleNotFound"), null, 'errors');
@@ -300,7 +300,7 @@ echo '<span class="opacitymedium">'.$langs->trans("CondensedOrdersSetupPage").'<
 // print "Location: ".DOL_URL_ROOT."/document.php?modulepart=condensedorders-".strtolower($testprint)."&file=SPECIMEN.pdf";
 			
 
-/*if ($action == 'edit') {
+if ($action == 'edit') {
  print $formSetup->generateOutput(true);
  print '<br>';
  } elseif (!empty($formSetup->items)) {
@@ -309,8 +309,7 @@ echo '<span class="opacitymedium">'.$langs->trans("CondensedOrdersSetupPage").'<
  print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?action=edit&token='.newToken().'">'.$langs->trans("Modify").'</a>';
  print '</div>';
  }
- */
-
+ 
 
 foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
 	if (!empty($myTmpObjectArray['includerefgeneration'])) {

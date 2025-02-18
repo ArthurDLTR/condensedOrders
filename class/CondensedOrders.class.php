@@ -93,7 +93,7 @@ class CondensedOrders extends CommonObject {
 		$modelpath = "custom/condensedorders/core/modules/condensedorders/doc/";
 
 		$this->fetch_origin();
-		dol_syslog("DEBUG : Génération du document pour préparation de commande");
+		// dol_syslog("DEBUG : Génération du document pour préparation de commande");
 
 		return $this->commonGenerateDocument($modelpath, $modele, $outputlangs, $hidedetails, $hidedesc, $hideref, $moreparams);
 	}

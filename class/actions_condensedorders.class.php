@@ -36,13 +36,14 @@ class ActionsCondensedOrders {
      * @param   action          current action
      * @return  int             -1 to throw an error, 0 if no error
      */
-    function addMoreMassActions($parameters, $object, $action = 'create'){
+    public function addMoreMassActions($parameters, $object, $action = 'create'){
         global $arrayofaction, $langs;
 
-        $label = img_picto('', 'docs', 'class="pictofiwxedwidth"').$langs->trans("CreateCondensedOrders");
+        $label = img_picto('', 'pdf', 'style="color:purple"').$langs->trans("CreateCondensedOrders");
+        $label_table = img_picto('', 'pdf', 'style="color:orange"').$langs->trans("CreateCondensedTable");
 
-        $this->resprints = '<option value="CREATE_CONDENSED_ORDERS" data-html="'. dol_escape_htmltag($label) .'">'. $label .'</option>';
-
+        $this->resprints = '<option value="CREATE_CONDENSED_ORDERS" data-html="'. dol_escape_htmltag($label) .'"> '. $label .'</option>';
+        $this->resprints.= '<option value="CREATE_CONDENSED_TABLE" data-html="'. dol_escape_htmltag($label_table) .'"> '. $label .'</option>';
         return 0;
     }
 
@@ -55,16 +56,16 @@ class ActionsCondensedOrders {
      * @return  void
      */
     
-    function showDocuments($parameters, $object, $action = 'create'){
+    public function showDocuments($parameters, $object, $action = 'create'){
     //function doActions($parameters, $object, $action = 'create'){
-        global $db, $conf;
+        global $db, $conf, $langs;
 
         $outputlangs = new Translate("", $conf);
         $outputlangs->setDefaultLang($newlang);
         $obj_tmp = new modCondensedOrders($db);
 
 
-        if (GETPOST('massaction') == 'CREATE_CONDENSED_ORDERS'){
+        if (GETPOST('massaction') == 'CREATE_CONDENSED_ORDERS' || GETPOST('massaction') == 'CREATE_CONDENSED_TABLE'){
             // PDF Generation
             $arrayOrder = GETPOST("toselect", "array");
             $arrayLineExpe = array();
@@ -73,23 +74,73 @@ class ActionsCondensedOrders {
                 foreach ($arrayOrder as $key => $value){
                     $expe = new Expedition($db);
                     $expe->fetch($value);
-                    print $expe->ref.' : '.count($expe->lines). ' lignes <br>';
+                    // print $expe->ref.' : '.count($expe->lines). ' lignes <br>';
                     // $arrayOrder[$key] = (int) $value;
+                    // var_dump($expe->socid);
                     foreach ($expe->lines as $key => $line){
-                            print 'Produit : '.$line->product_ref.' Qty : '.$line->qty.'<br>';
+                            // print 'Produit : '.$line->product_ref.' Qty : '.$line->qty.'<br>';
                         if ($line->fk_product > 0 && !$line->product_type){
+                            
                             if(!isset($arrayLineExpe[$line->fk_product])){
                                 $arrayLineExpe[$line->fk_product] = array(
                                     'ref' => $line->product_ref,
-                                    'qty' => $line->qty
+                                    'qty' => $line->qty,
+                                    'details' => $expe->socid
                                 );
                             } else {
                                 $arrayLineExpe[$line->fk_product]['qty'] = $arrayLineExpe[$line->fk_product]['qty'] + $line->qty;
                             }
-
-                            
+                            // $arrayLineExpe[$line->fk_product] 
                         }
                     }
+                }
+
+                foreach ($arrayOrder as $key => $value){
+                    $expe = new Expedition($db);
+                    $expe->fetch($value);
+                    // $arrayOrder[$key] = (int) $value;
+                    // var_dump($expe->socid);
+                    foreach ($expe->lines as $key => $line){
+                        if ($line->fk_product > 0 && !$line->product_type){
+                            if(!isset($arrayLineProduct[$line->fk_product])){
+                                $arrayLineProduct[$line->fk_product] = array(
+                                    'ref' => $line->product_ref,
+                                    'qte_det' => array(),
+                                    'qte_tot' => $arrayLineExpe[$line->fk_product]['qty']
+                                );
+                                $arrayLineProduct[$line->fk_product]['qte_det'][0] = array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_expe' => $expe->ref);
+                            } else {
+                                array_push($arrayLineProduct[$line->fk_product]['qte_det'], array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_expe' => $expe->ref));
+                                // $arrayLineProduct[$line->fk_product]['qte_det'][$i] = array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_expe' => $expe->ref);
+                            }
+                        }
+                    }
+                }
+
+                if (GETPOST('massaction') == 'CREATE_CONDENSED_TABLE'){
+                    $soc = new Societe($db);
+                    // Affichage entête de titre
+                    print_barre_liste($langs->trans('CONDENSED_TABLE'), $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, 'dolly', 0, $newcardbutton, '', $limit, 0, 0, 1);
+                    // Affichage du tableau contenant les informations pour chaque produit
+                    print '<table class="noborder centpercent">';
+                    print '<tr class="liste_titre">
+                        <td>Réf. Produit</td>
+                        <td>Qté par commande</td>
+                        <td>Qté totale</td>
+                    </tr>';
+                    foreach($arrayLineProduct as $key => $line){
+                        print '<tr>
+                            <td>'.$line['ref'].'</td>';
+                            print '<td>';
+                            foreach($line['qte_det'] as $key => $det){
+                                $soc->fetch($det['soc']);
+                                print $det['qte_expe'].' venant de '.$det['ref_expe'].' pour '.$soc->getNomUrl().'<br>';
+                            }
+                            print '</td>';
+                            print '<td>'.$line['qte_tot'].'</td>
+                        </tr>';
+                    }
+                    print '</table>';
                 }
                 // var_dump($arrayLineExpe);
                 // $condensedOrders = new CondensedOrders($db);
@@ -102,11 +153,12 @@ class ActionsCondensedOrders {
     }
 
     // Fonction de déclenchement de la génération du pdf
-    function doActions($parameters, $object, $action = 'create')
+    public function doActions($parameters, $object, $action = 'create')
     {
         
         global $db;
         global $conf;
+        global $langs;
 
         $outputlangs = new Translate("", $conf);
         $outputlangs->setDefaultLang($newlang);
@@ -115,53 +167,80 @@ class ActionsCondensedOrders {
         if (GETPOST('massaction') == 'CREATE_CONDENSED_ORDERS'){
             // PDF Generation
             $arrayOrder = GETPOST("toselect", "array");
+            // PDF Generation
+            $arrayOrder = GETPOST("toselect", "array");
+            $arrayLineExpe = array();
+            $arrayLineProduct = array();
             if(count($arrayOrder) > 0){
                 foreach ($arrayOrder as $key => $value){
-                    $order = new Expedition($db);
-                    $order->fetch($value);
-                    print $order->ref.' : '.count($order->lines). ' lignes <br>';
+                    $expe = new Expedition($db);
+                    $expe->fetch($value);
+                    // print $expe->ref.' : '.count($expe->lines). ' lignes <br>';
                     // $arrayOrder[$key] = (int) $value;
-                    foreach ($order->lines as $key => $line){
-                        print 'Produit : '.$line->product_ref.' Qty : '.$line->qty.'<br>';
+                    // var_dump($expe->socid);
+                    foreach ($expe->lines as $key => $line){
+                            // print 'Produit : '.$line->product_ref.' Qty : '.$line->qty.'<br>';
+                        if ($line->fk_product > 0 && !$line->product_type){
+                            
+                            if(!isset($arrayLineExpe[$line->fk_product])){
+                                $arrayLineExpe[$line->fk_product] = array(
+                                    'ref' => $line->product_ref,
+                                    'qty' => $line->qty,
+                                    'details' => $expe->socid
+                                );
+                            } else {
+                                $arrayLineExpe[$line->fk_product]['qty'] = $arrayLineExpe[$line->fk_product]['qty'] + $line->qty;
+                            }
+                            // $arrayLineExpe[$line->fk_product] 
+                        }
                     }
                 }
 
-                // $condensedOrders = new CondensedOrders($db);
-                // $condensedOrders->generatePDF($arrayOrder);
+                foreach ($arrayOrder as $key => $value){
+                    $expe = new Expedition($db);
+                    $expe->fetch($value);
+                    // $arrayOrder[$key] = (int) $value;
+                    // var_dump($expe->socid);
+                    foreach ($expe->lines as $key => $line){
+                        if ($line->fk_product > 0 && !$line->product_type){
+                            if(!isset($arrayLineProduct[$line->fk_product])){
+                                $arrayLineProduct[$line->fk_product] = array(
+                                    'ref' => $line->product_ref,
+                                    'qte_det' => array(),
+                                    'qte_tot' => $arrayLineExpe[$line->fk_product]['qty']
+                                );
+                                $arrayLineProduct[$line->fk_product]['qte_det'][0] = array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_expe' => $expe->ref);
+                            } else {
+                                array_push($arrayLineProduct[$line->fk_product]['qte_det'], array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_expe' => $expe->ref));
+                                // $arrayLineProduct[$line->fk_product]['qte_det'][$i] = array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_expe' => $expe->ref);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if(empty($hidedetails)){
+                $hidedetails = (getDolGlobalString('MAIN_GENERATE_DOCUMENTS_HIDE_DETAILS') ? 1 : 0);
+            }
+
+            if(empty($hidedesc)){
+                $hidedesc = (getDolGlobalString('MAIN_GENERATE_DOCUMENTS_HIDE_DESC') ? 1 : 0);
+            }
+            if(empty($hideref)){
+                $hideref = (getDolGlobalString('MAIN_GENERATE_DOCUMENTS_HIDE_REF') ? 1 : 0);
+            }
+
+            if (GETPOST('massaction') == 'CREATE_CONDENSED_ORDERS'){
+                dol_include_once('/condensedorders/class/condensedorders.class.php');
+                $obj = new CondensedOrders($db);
+                $obj->model_pdf = 'brahe';
+                $obj->lines = $arrayLineOrder;
+                $obj->products = $arrayLineProduct;
+                //print 'modele : '.$obj_tmp->model_pdf.'\n lignes : '.$obj_tmp->lines.'\nproduits : '.$obj_tmp->products;
+                $result = $obj->generateDocument($obj->model_pdf, $outputlangs, $hidedetails, $hidedesc, $hideref, $moreparams);
+                //print $obj_tmp;
             }
         }
 
-        if(empty($hidedetails)){
-            $hidedetails = (getDolGlobalString('MAIN_GENERATE_DOCUMENTS_HIDE_DETAILS') ? 1 : 0);
-        }
-
-        if(empty($hidedesc)){
-            $hidedesc = (getDolGlobalString('MAIN_GENERATE_DOCUMENTS_HIDE_DESC') ? 1 : 0);
-        }
-        if(empty($hideref)){
-            $hideref = (getDolGlobalString('MAIN_GENERATE_DOCUMENTS_HIDE_REF') ? 1 : 0);
-        }
-
-        $arrayOrder = GETPOST('toselect', 'array');
-        $arrayLineOrder = array();
-        $arrayLineProduct = array();
-        if (count($arrayOrder) > 0){
-            foreach($arrayOrder as $key => $value) {
-                $obj_static = new Expedition($db);
-            }
-        }
-
-        if (GETPOST('massaction') == 'CREATE_CONDENSED_ORDERS'){
-            dol_include_once('/condensedorders/class/condensedorders.class.php');
-            $obj = new CondensedOrders($db);
-            $obj->model_pdf = 'brahe';
-            $obj->lines = $arrayLineOrder;
-            $obj->products = $arrayLineProduct;
-            //print 'modele : '.$obj_tmp->model_pdf.'\n lignes : '.$obj_tmp->lines.'\nproduits : '.$obj_tmp->products;
-            $result = $obj->generateDocument($obj->model_pdf, $outputlangs, $hidedetails, $hidedesc, $hideref, $moreparams);
-            //print $obj_tmp;
-        }
     }
-
-    
 }

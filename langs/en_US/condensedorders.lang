@@ -58,3 +58,9 @@ CondensedOrdersDescription = Module to compile and create a summary of orders to
 #
 EXPEDITION_REF = Reference of the shipping
 QTY_TOTALE = Totale quantity
+
+#
+# More translations for the shipping list 
+#
+CreateCondensedOrders = PDF for orders preparation
+CONDENSEDORDERS_TABLE = Print the summary table to prepare orders
