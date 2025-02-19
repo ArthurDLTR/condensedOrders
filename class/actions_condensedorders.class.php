@@ -43,7 +43,7 @@ class ActionsCondensedOrders {
         $label_table = img_picto('', 'pdf', 'style="color:orange"').$langs->trans("CreateCondensedTable");
 
         $this->resprints = '<option value="CREATE_CONDENSED_ORDERS" data-html="'. dol_escape_htmltag($label) .'"> '. $label .'</option>';
-        $this->resprints.= '<option value="CREATE_CONDENSED_TABLE" data-html="'. dol_escape_htmltag($label_table) .'"> '. $label .'</option>';
+        $this->resprints.= '<option value="CREATE_CONDENSED_TABLE" data-html="'. dol_escape_htmltag($label_table) .'"> '. $label_table .'</option>';
         return 0;
     }
 
@@ -61,7 +61,7 @@ class ActionsCondensedOrders {
         global $db, $conf, $langs;
 
         $outputlangs = new Translate("", $conf);
-        $outputlangs->setDefaultLang($newlang);
+        //$outputlangs->setDefaultLang($newlang);
         $obj_tmp = new modCondensedOrders($db);
 
 
@@ -119,8 +119,6 @@ class ActionsCondensedOrders {
 
                 if (GETPOST('massaction') == 'CREATE_CONDENSED_TABLE'){
                     $soc = new Societe($db);
-                    // Affichage entête de titre
-                    print_barre_liste($langs->trans('CONDENSED_TABLE'), $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, 'dolly', 0, $newcardbutton, '', $limit, 0, 0, 1);
                     // Affichage du tableau contenant les informations pour chaque produit
                     print '<table class="noborder centpercent">';
                     print '<tr class="liste_titre">
@@ -161,10 +159,10 @@ class ActionsCondensedOrders {
         global $langs;
 
         $outputlangs = new Translate("", $conf);
-        $outputlangs->setDefaultLang($newlang);
+        //$outputlangs->setDefaultLang($newlang);
         $obj_tmp = new modCondensedOrders($db);
 
-        if (GETPOST('massaction') == 'CREATE_CONDENSED_ORDERS'){
+        if (GETPOST('massaction') == 'CREATE_CONDENSED_ORDERS' || GETPOST('massaction') == 'CREATE_CONDENSED_TABLE'){
             // PDF Generation
             $arrayOrder = GETPOST("toselect", "array");
             // PDF Generation
@@ -229,18 +227,65 @@ class ActionsCondensedOrders {
             if(empty($hideref)){
                 $hideref = (getDolGlobalString('MAIN_GENERATE_DOCUMENTS_HIDE_REF') ? 1 : 0);
             }
-
+            dol_include_once('/condensedorders/class/condensedorders.class.php');
             if (GETPOST('massaction') == 'CREATE_CONDENSED_ORDERS'){
-                dol_include_once('/condensedorders/class/condensedorders.class.php');
                 $obj = new CondensedOrders($db);
                 $obj->model_pdf = 'brahe';
-                $obj->lines = $arrayLineOrder;
+                // $obj->lines = $arrayLineOrder;
                 $obj->products = $arrayLineProduct;
                 //print 'modele : '.$obj_tmp->model_pdf.'\n lignes : '.$obj_tmp->lines.'\nproduits : '.$obj_tmp->products;
-                $result = $obj->generateDocument($obj->model_pdf, $outputlangs, $hidedetails, $hidedesc, $hideref, $moreparams);
+                $result = $obj->generateDocument($obj->model_pdf, $outputlangs, $hidedetails, $hidedesc, $hideref);
                 //print $obj_tmp;
             }
-        }
+            /*
+            if (GETPOST('massaction') == 'CREATE_CONDENSED_TABLE'){
+                require_once DOL_DOCUMENT_ROOT.'/core/class/hookmanager.class.php';
+                
+                $soc = new Societe($db);
+                $obj = new CondensedOrders($db);
+                if (GETPOSTISSET('CSVButton', 'bool')){
+                    $obj->toCSV($arrayLineProduct);
+                }
 
+                // Affichage entête de titre
+                
+                $hookmanager = new HookManager($db);
+                $hookmanager->initHooks(array('shipmentlist'));
+                llxHeader("", 'Condensedarea', '', '', 0, 0, '', '', '', 'mod-condensed page-index');
+
+                // Button to download csv
+                // print '<form method="POST" id="searchFormList" action="'. $_SERVER["PHP_SELF"] . ' ">';
+                // print '<input type="hidden" name="token" value="'.newToken().'">';
+                // print '<input type="hidden" name="massaction" id="massaction" value="CREATE_CONDENSED_TABLE">';
+		        // print '<input type="submit" class="butAction" value="'.$langs->trans("CSV").'" name="CSVButton">';
+                // print '</form>';
+
+                print_barre_liste($langs->trans('CONDENSED_TABLE'), 0, $_SERVER["PHP_SELF"], '', '', '', '', $num, count($arrayLineProduct), 'dolly', 0, '', '', $limit, 0, 0, 1);
+                // Affichage du tableau contenant les informations pour chaque produit
+                print '<table class="noborder centpercent">';
+                print '<tr class="liste_titre">
+                    <td>Réf. Produit</td>
+                    <td>Qté par commande</td>
+                    <td>Qté totale</td>
+                </tr>';
+                foreach($arrayLineProduct as $key => $line){
+                    print '<tr>
+                        <td>'.$line['ref'].'</td>';
+                        print '<td>';
+                        foreach($line['qte_det'] as $key => $det){
+                            $soc->fetch($det['soc']);
+                            print $det['qte_expe'].' venant de '.$det['ref_expe'].' pour '.$soc->getNomUrl().'<br>';
+                        }
+                        print '</td>';
+                        print '<td>'.$line['qte_tot'].'</td>
+                    </tr>';
+                }
+                print '</table>';
+                // $this->toCSV($arrayLineProduct);
+                // exit();
+            }
+                */
+            
+        }
     }
 }

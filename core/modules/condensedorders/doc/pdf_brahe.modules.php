@@ -106,18 +106,18 @@ class pdf_brahe extends ModelePdfExpedition
     /**
 	 *	Function to build pdf onto disk
 	 *
-	 *	@param		Expedition	$object			    Object shipping to generate (or id if old method)
-	 *	@param		Translate	$outputlangs		Lang output object
-	 *  @param		string		$srctemplatepath	Full path of source filename for generator using a template file
-	 *  @param		int			$hidedetails		Do not show line details
-	 *  @param		int			$hidedesc			Do not show desc
-	 *  @param		int			$hideref			Do not show ref
+	 *	@param		CondensedOrders	$object			    Object shipping to generate (or id if old method)
+	 *	@param		Translate		$outputlangs		Lang output object
+	 *  @param		string			$srctemplatepath	Full path of source filename for generator using a template file
+	 *  @param		int				$hidedetails		Do not show line details
+	 *  @param		int				$hidedesc			Do not show desc
+	 *  @param		int				$hideref			Do not show ref
 	 *  @return     int         	    			1=OK, 0=KO
 	 */
 	public function write_file($object, $outputlangs, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0){
         global $user, $conf, $langs, $hookmanager;
 
-		$object->fetch_thirdparty();
+		// dol_syslog("DEBUG : Contenu de object : ".var_dump($object->products['8631']['ref']));
 
 		if (!is_object($outputlangs)) {
 			$outputlangs = $langs;
@@ -159,23 +159,25 @@ class pdf_brahe extends ModelePdfExpedition
 		// dol_syslog("Resultat du test pour savoir si le dossier existe : ".file_exists($diroutputmassaction));
 		// dol_syslog("Resultat du test pour savoir si le dossier existe : ".dol_mkdir($diroutputmassaction));
 
-		$nblines = count($object->lines);
+		// $nblines = count($object->products);
 
-        // Loop on each lines to detect if there is at least one image to show
-		$realpatharray = array();
-		$this->atleastonephoto = false;
+        // // Loop on each lines to detect if there is at least one image to show
+		// $realpatharray = array();
+		// $this->atleastonephoto = false;
+		/*
 		if (getDolGlobalString('MAIN_GENERATE_SHIPMENT_WITH_PICTURE')) {
 			$objphoto = new Product($this->db);
 
-			for ($i = 0; $i < $nblines; $i++) {
-				if (empty($object->lines[$i]->fk_product)) {
+			foreach ($object->products as $key => $line) {
+				if ($line['ref'] == null) {
 					continue;
 				}
-
-				$objphoto->fetch($object->lines[$i]->fk_product);
+				// var_dump($line);
+				print 'Ref : '.$line['ref']. '<br>Details : '.$line['qte_det'].'<br>total :'.$line['qte_tot'].'<br>';
+				$objphoto->fetch($object->products[$i]->fk_product);
 
 				if (getDolGlobalInt('PRODUCT_USE_OLD_PATH_FOR_PHOTO')) {
-					$pdir = get_exdir($object->lines[$i]->fk_product, 2, 0, 0, $objphoto, 'product').$object->lines[$i]->fk_product."/photos/";
+					$pdir = get_exdir($object->products[$i]->fk_product, 2, 0, 0, $objphoto, 'product').$object->products[$i]->fk_product."/photos/";
 					$dir = $conf->product->dir_output.'/'.$pdir;
 				} else {
 					$pdir = get_exdir(0, 0, 0, 0, $objphoto, 'product');
@@ -209,8 +211,85 @@ class pdf_brahe extends ModelePdfExpedition
         if (count($realpatharray) == 0) {
 			$this->posxpicture = $this->posxweightvol;
 		}
+			*/
 
+		$soc = new Societe($this->db);
         if (file_exists($diroutputmassaction)) {
+			// Init of $pdf
+			$nblines = count($object->products);
+            $pdf = pdf_getInstance($this->format);
+            $default_font_size = pdf_getPDFFontSize($outputlangs);
+            $heightforinfotot = 8; // Height reserved to output the info and total part
+            $heightforfreetext = (isset($conf->global->MAIN_PDF_FREETEXT_HEIGHT) ? $conf->global->MAIN_PDF_FREETEXT_HEIGHT : 5); // Height reserved to output the free text on last page
+            $heightforfooter = $this->marge_basse + 8; // Height reserved to output the footer (value include bottom margin)
+            if (getDolGlobalString('MAIN_GENERATE_DOCUMENTS_SHOW_FOOT_DETAILS')) {
+                $heightforfooter += 6;
+            }
+            // $pdf->SetAutoPageBreak(1, 0);
+
+            if (class_exists('TCPDF')) {
+                $pdf->setPrintHeader(false);
+                $pdf->setPrintFooter(false);
+            }
+            $pdf->SetFont(pdf_getPDFFont($outputlangs));
+            // Set path to the background PDF File
+            // if (!getDolGlobalString('MAIN_DISABLE_FPDI') && getDolGlobalString('MAIN_ADD_PDF_BACKGROUND')) {
+            //     $pagecount = $pdf->setSourceFile($conf->mycompany->dir_output.'/' . getDolGlobalString('MAIN_ADD_PDF_BACKGROUND'));
+            //     $tplidx = $pdf->importPage(1);
+            // }
+
+            $pagenb = 0;
+            $pdf->SetDrawColor(128, 128, 128);
+			$pdf->addPage();
+            $pdf->Open();
+			$html = '<style>
+				*{
+					font-size: 10px;
+				}
+				.title{
+					background-color: #F1F1F1;
+				}
+				table, td {
+					border: 1px solid #000;
+					text-align:center;
+				}
+			</style>';
+			$html.= '<table>';
+            $html.= '<tr class="title">
+                    <td width="20%">Réf Produit</td>
+                    <td width="70%">Qté par commande</td>
+                    <td width="10%">Qté totale</td>
+                </tr>';
+			foreach($object->products as $key => $line){
+				$html.= '<tr><td>'.$line['ref'].'</td>';
+				$html.= '<td>';
+				foreach($line['qte_det'] as $key => $det){
+					$soc->fetch($det['soc']);
+					$html.= $det['qte_expe'].' de '.$det['ref_expe'].' pour '.$soc->nom.'<br>';
+				}
+				$html.= '</td>';
+				$html.= '<td>'.$line['qte_tot'].'</td></tr>';
+			}
+			$html.= '</table>';
+			$pdf->writeHTMLCell(0, 0, 10, 10, $html);
+			
+			//print $html;
+			// $pdf->writeHTMLCell(0, 0, $curX, $curY - 1, 'Réf. Produit', 0, 1, 0);
+			// $pdf->writeHTMLCell(0, 0, $curX + 50, $curY - 1, 'Détails Commandes');
+			// $pdf->MultiCell(50, 3, $line['qte_det'], '', 'R');
+			// $pdf->writeHTMLCell(0, 0, $curX + 145, $curY - 1, 'Quantité totale', 0, 1, 0);
+
+			// $pdf->writeHTMLCell(0, 0, $curX, $curY - 1, $line['ref'], 0, 1, 0);
+			// 	$nb_expe = 0;
+			// 	foreach ($line['qte_det'] as $key => $det){
+			// 		$soc->fetch($det['soc']);
+			// 		$pdf->writeHTMLCell(0, 0, $curX + 50, $curY - 1 + $nb_expe, $det['qte_expe'].' dans '.$det['ref_expe'].' pour '.$soc->nom);
+			// 		$nb_expe.= 3;
+			// 	}
+			// 	// $pdf->MultiCell(50, 3, $line['qte_det'], '', 'R');
+			// 	$pdf->writeHTMLCell(0, 0, $curX + 145, $curY - 1, $line['qte_tot'], 0, 1, 0);
+
+			/*
             // Add pdfgeneration hook
             if (!is_object($hookmanager)) {
                 include_once DOL_DOCUMENT_ROOT.'/core/class/hookmanager.class.php';
@@ -223,7 +302,6 @@ class pdf_brahe extends ModelePdfExpedition
 
             // Set nblines with the new facture lines content after hook
             $nblines = count($object->products);
-
             $pdf = pdf_getInstance($this->format);
             $default_font_size = pdf_getPDFFontSize($outputlangs);
             $heightforinfotot = 8; // Height reserved to output the info and total part
@@ -283,7 +361,6 @@ class pdf_brahe extends ModelePdfExpedition
             $tab_height = $this->page_hauteur - $tab_top - $heightforfooter - $heightforfreetext;
 
             $this->posxdesc = $this->marge_gauche + 1;
-			/*
             // Incoterm
             $height_incoterms = 0;
             if (isModEnabled('incoterm')) {
@@ -313,7 +390,7 @@ class pdf_brahe extends ModelePdfExpedition
             if (!empty($extranote)) {
                 $notetoshow = dol_concatdesc($notetoshow, $extranote);
             }
-
+			/*
             if (!empty($notetoshow) || !empty($object->tracking_number)) {
                 $tab_top -= 2;
                 $tab_topbeforetrackingnumber = $tab_top;
@@ -489,8 +566,8 @@ class pdf_brahe extends ModelePdfExpedition
                     $height_note = 0;
                 }
             }
-
-			*/
+			
+			
             // Show barcode
             $height_barcode = 0;
             //$pdf->Rect($this->marge_gauche, $this->marge_haute, $this->page_largeur-$this->marge_gauche-$this->marge_droite, 30);
@@ -504,14 +581,22 @@ class pdf_brahe extends ModelePdfExpedition
             //$this->pdfTabTitles($pdf, $tab_top, $tab_height, $outputlangs);
             $pdf->rollbackTransaction(true);
 
+			// Column titles
+			$pdf->writeHTMLCell(0, 0, $curX, $curY - 1, 'Réf. Produit', 0, 1, 0);
+			$pdf->writeHTMLCell(0, 0, $curX + 50, $curY - 1, 'Détails Commandes');
+			// $pdf->MultiCell(50, 3, $line['qte_det'], '', 'R');
+			$pdf->writeHTMLCell(0, 0, $curX + 145, $curY - 1, 'Quantité totale', 0, 1, 0);
 
-            $nexY = $tab_top + $this->tabTitleHeight;
 
+            // $nexY = $tab_top + $this->tabTitleHeight + $i;
+			$i = 0;
+			// print 'Ref : '.$line['ref']. '<br>Details : '.$line['qte_det'].'<br>total :'.$line['qte_tot'].'<br>';
+			$soc = new Societe($this->db);
             // Loop on each lines
             $pageposbeforeprintlines = $pdf->getPage();
             $pagenb = $pageposbeforeprintlines;
-            for ($i = 0; $i < $nblines; $i++) {
-				$obj_line = $obj->products[$i];
+			//$pdf->MultiCell(0, 4, '');
+            foreach ($object->products as $key => $line){
                 $curY = $nexY;
                 $pdf->SetFont('', '', $default_font_size - 1); // Into loop to work with multipage
                 $pdf->SetTextColor(0, 0, 0);
@@ -531,16 +616,23 @@ class pdf_brahe extends ModelePdfExpedition
 				$soc_static->fetch($obj_line['qte_det']['soc']);
 
 
-				$pdf->writeHTMLCell(0, 0, $curX, $curY - 1, $obj_line['ref'], 0, 1, 0);
-				$pdf->MultiCell(50, 3, $obj_line['qte_det'], '', 'R');
-				$pdf->writeHTMLCell(0, 0, $curX + 145, $curY - 1, $obj_line['qte_tot'], 0, 1, 0);
+				$pdf->writeHTMLCell(0, 0, $curX, $curY - 1, $line['ref'], 0, 1, 0);
+				$nb_expe = 0;
+				foreach ($line['qte_det'] as $key => $det){
+					$soc->fetch($det['soc']);
+					$pdf->writeHTMLCell(0, 0, $curX + 50, $curY - 1 + $nb_expe, $det['qte_expe'].' dans '.$det['ref_expe'].' pour '.$soc->nom);
+					$nb_expe.= 3;
+				}
+				// $pdf->MultiCell(50, 3, $line['qte_det'], '', 'R');
+				$pdf->writeHTMLCell(0, 0, $curX + 145, $curY - 1, $line['qte_tot'], 0, 1, 0);
 
-				/*
+				
                 $showpricebeforepagebreak = 1;
                 $posYAfterImage = 0;
                 $posYAfterDescription = 0;
                 $heightforsignature = 0;
-
+				//$curY.= $i;
+					
 				/*
                 if ($this->getColumnStatus('photo')) {
                     // We start with Photo of product line
@@ -569,7 +661,7 @@ class pdf_brahe extends ModelePdfExpedition
                         $posYAfterImage = $curY + $imglinesize['height'];
                     }
                 }
-					*/
+				*/
 
                 // Description of product line
 				/*
@@ -610,12 +702,11 @@ class pdf_brahe extends ModelePdfExpedition
                     }
                     $posYAfterDescription = $pdf->GetY();
                 }
-					*/
+					
 
-				/*
                 $nexY = max($pdf->GetY(), $posYAfterImage);
                 $pageposafter = $pdf->getPage();
-
+				/*
                 $pdf->setPage($pageposbefore);
                 $pdf->setTopMargin($this->marge_haute);
                 $pdf->setPageOrientation('', 1, 0); // The only function to edit the bottom margin of current page to set it.
@@ -636,6 +727,7 @@ class pdf_brahe extends ModelePdfExpedition
 
                 // weight
 
+				/*
                 $weighttxt = '';
                 if (empty($object->lines[$i]->fk_product_type) && $object->lines[$i]->weight) {
                     $weighttxt = round($object->lines[$i]->weight * $object->lines[$i]->qty_shipped, 5).' '.measuringUnitString(0, "weight", $object->lines[$i]->weight_units, 1);
@@ -644,8 +736,8 @@ class pdf_brahe extends ModelePdfExpedition
                 if (empty($object->lines[$i]->fk_product_type) && $object->lines[$i]->volume) {
                     $voltxt = round($object->lines[$i]->volume * $object->lines[$i]->qty_shipped, 5).' '.measuringUnitString(0, "volume", $object->lines[$i]->volume_units ? $object->lines[$i]->volume_units : 0, 1);
                 }
-				*/
-				/*
+				
+				
                 if ($this->getColumnStatus('weight')) {
                     $this->printStdColumnContent($pdf, $curY, 'weight', $weighttxt.(($weighttxt && $voltxt) ? '<br>' : '').$voltxt);
                     $nexY = max($pdf->GetY(), $nexY);
@@ -670,31 +762,32 @@ class pdf_brahe extends ModelePdfExpedition
                     $this->printStdColumnContent($pdf, $curY, 'subprice', price($object->lines[$i]->subprice, 0, $outputlangs));
                     $nexY = max($pdf->GetY(), $nexY);
                 }
-					*/
-				/*
+				
+				
                 if ($this->getColumnStatus('prod_ref')) {
-                    $this->printStdColumnContent($pdf, $curY, 'prod_ref', price($object->lines[$i]->ref, 0, $outputlangs));
+                    $this->printStdColumnContent($pdf, $curY, 'prod_ref', $line['ref']);
                     $nexY = max($pdf->GetY(), $nexY);
                 }
                 if ($this->getColumnStatus('qte_det')) {
-                    $this->printStdColumnContent($pdf, $curY, 'qte_det', price($object->lines[$i]->qte_det, 0, $outputlangs));
+                    $this->printStdColumnContent($pdf, $curY, 'qte_det', $line['qte_det']);
                     $nexY = max($pdf->GetY(), $nexY);
                 }
                 if ($this->getColumnStatus('qte_tot')) {
-                    $this->printStdColumnContent($pdf, $curY, 'qte_tot', price($object->lines[$i]->qte_tot, 0, $outputlangs));
+                    $this->printStdColumnContent($pdf, $curY, 'qte_tot', $line['qte_tot']);
                     $nexY = max($pdf->GetY(), $nexY);
                 }
 
                 // Extrafields
-                if (!empty($object->lines[$i]->array_options)) {
-                    foreach ($object->lines[$i]->array_options as $extrafieldColKey => $extrafieldValue) {
+                if (!empty($object->products[$i]->array_options)) {
+                    foreach ($object->products[$i]->array_options as $extrafieldColKey => $extrafieldValue) {
                         if ($this->getColumnStatus($extrafieldColKey)) {
-                            $extrafieldValue = $this->getExtrafieldContent($object->lines[$i], $extrafieldColKey, $outputlangs);
+                            $extrafieldValue = $this->getExtrafieldContent($object->products[$i], $extrafieldColKey, $outputlangs);
                             $this->printStdColumnContent($pdf, $curY, $extrafieldColKey, $extrafieldValue);
                             $nexY = max($pdf->GetY(), $nexY);
                         }
                     }
                 }
+				
 
                 // Add line
                 if (getDolGlobalString('MAIN_PDF_DASH_BETWEEN_LINES') && $i < ($nblines - 1)) {
@@ -704,7 +797,7 @@ class pdf_brahe extends ModelePdfExpedition
                     $pdf->line($this->marge_gauche, $nexY, $this->page_largeur - $this->marge_droite, $nexY);
                     $pdf->SetLineStyle(array('dash' => 0));
                 }
-
+				/*
                 // Detect if some page were added automatically and output _tableau for past pages
                 while ($pagenb < $pageposafter) {
                     $pdf->setPage($pagenb);
@@ -724,7 +817,9 @@ class pdf_brahe extends ModelePdfExpedition
                         $pdf->useTemplate($tplidx);
                     }
                 }
-                if (isset($object->lines[$i + 1]->pagebreak) && $object->lines[$i + 1]->pagebreak) {
+					
+				/*
+                if (isset($object->products[$i + 1]->pagebreak) && $object->products[$i + 1]->pagebreak) {
                     if ($pagenb == 1) {
                         $this->_tableau($pdf, $tab_top, $this->page_hauteur - $tab_top - $heightforfooter, 0, $outputlangs, 0, 1);
                     } else {
@@ -741,10 +836,8 @@ class pdf_brahe extends ModelePdfExpedition
                         $this->_pagehead($pdf, $object, 0, $outputlangs);
                     }
                 }
-					*/
+					
             }
-
-			/*
             // Show square
             if ($pagenb == 1) {
                 $this->_tableau($pdf, $tab_top, $this->page_hauteur - $tab_top - $heightforinfotot - $heightforfreetext - $heightforfooter, 0, $outputlangs, 0, 0);
@@ -753,7 +846,8 @@ class pdf_brahe extends ModelePdfExpedition
                 $this->_tableau($pdf, $tab_top_newpage, $this->page_hauteur - $tab_top_newpage - $heightforinfotot - $heightforfreetext - $heightforfooter, 0, $outputlangs, 1, 0);
                 $bottomlasttab = $this->page_hauteur - $heightforinfotot - $heightforfreetext - $heightforfooter + 1;
             }
-
+				*/
+			/*
             // Display total area
             $posy = $this->_tableau_tot($pdf, $object, 0, $bottomlasttab, $outputlangs);
 
@@ -762,8 +856,8 @@ class pdf_brahe extends ModelePdfExpedition
             if (method_exists($pdf, 'AliasNbPages')) {
                 $pdf->AliasNbPages();
             }
-				*/
 
+			*/
             $pdf->Close();
 
             $pdf->Output($file, 'F');
@@ -1363,8 +1457,8 @@ class pdf_brahe extends ModelePdfExpedition
 		*/
 
 		// Add extrafields cols
-		if (!empty($object->lines)) {
-			$line = reset($object->lines);
+		if (!empty($object->products)) {
+			$line = reset($object->products);
 			$this->defineColumnExtrafield($line, $outputlangs, $hidedetails);
 		}
 
