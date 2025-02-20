@@ -138,21 +138,41 @@ class pdf_brahe extends ModelePdfExpedition
 			$outputlangsbis->loadLangs(array("main", "bills", "orders", "products", "dict", "companies", "propal", "deliveries", "sendings", "productbatch"));
 		}
 
-		if ($conf->expedition->multidir_output[$conf->entity]) {
-            $diroutputmassaction = $conf->expedition->multidir_output[$conf->entity].'/sending/temp/massgeneration/'.$user->id;
 
-			// Definition of $dir and $file
-            $filename = 'MULTI_BL';
-            $now = dol_now();
-            $file = $diroutputmassaction.'/'.$filename.'_'.dol_print_date($now, 'dayhourlog').'.pdf';
+		switch($object->context){
+			case 'orderlist':
+				if($conf->commande->multidir_output[$conf->entity]){
+					$diroutputmassaction = $conf->commande->multidir_output[$conf->entity].'/temp/massgeneration/'.$user->id;
+					// Definition of $dir and $file
+					$filename = 'MULTI_BL';
+					$now = dol_now();
+					$file = $diroutputmassaction.'/'.$filename.'_'.dol_print_date($now, 'dayhourlog').'.pdf';
 
-			if (!file_exists($diroutputmassaction)) {
-				if (dol_mkdir($diroutputmassaction) < 0) {
-					$this->error = $langs->transnoentities("ErrorCanNotCreateDir", $diroutputmassaction);
-					return 0;
+					if (!file_exists($diroutputmassaction)) {
+						if (dol_mkdir($diroutputmassaction) < 0) {
+							$this->error = $langs->transnoentities("ErrorCanNotCreateDir", $diroutputmassaction);
+							return 0;
+						}
+					}
 				}
-			}
-        }
+				break;
+			case 'shipmentlist':
+				if($conf->expedition->multidir_output[$conf->entity]){
+					$diroutputmassaction = $conf->expedition->multidir_output[$conf->entity].'/sending/temp/massgeneration/'.$user->id;
+					// Definition of $dir and $file
+					$filename = 'MULTI_BL';
+					$now = dol_now();
+					$file = $diroutputmassaction.'/'.$filename.'_'.dol_print_date($now, 'dayhourlog').'.pdf';
+
+					if (!file_exists($diroutputmassaction)) {
+						if (dol_mkdir($diroutputmassaction) < 0) {
+							$this->error = $langs->transnoentities("ErrorCanNotCreateDir", $diroutputmassaction);
+							return 0;
+						}
+					}
+				}
+				break;
+		}
 
 		// dol_syslog("nom du doc : ".$file);
 		// dol_syslog("nom du dir : ".$diroutputmassaction);
@@ -214,6 +234,7 @@ class pdf_brahe extends ModelePdfExpedition
 			*/
 
 		$soc = new Societe($this->db);
+		$prod = new Product($this->db);
         if (file_exists($diroutputmassaction)) {
 			// Init of $pdf
 			$nblines = count($object->products);
@@ -256,12 +277,13 @@ class pdf_brahe extends ModelePdfExpedition
 			</style>';
 			$html.= '<table>';
             $html.= '<tr class="title">
-                    <td width="20%">Réf Produit</td>
-                    <td width="70%">Qté par commande</td>
+                    <td width="30%">Réf Produit</td>
+                    <td width="60%">Qté par commande</td>
                     <td width="10%">Qté totale</td>
                 </tr>';
 			foreach($object->products as $key => $line){
-				$html.= '<tr><td width="30%">'.$line['ref'].' - '.$prod->label.'</td>';
+				$prod->fetch($line['prod_id']);
+				$html.= '<tr><td>'.$line['ref'].' - '.$prod->label.'</td>';
 				$html.= '<td>';
 				foreach($line['qte_det'] as $key => $det){
 					$soc->fetch($det['soc']);
@@ -882,7 +904,7 @@ class pdf_brahe extends ModelePdfExpedition
 
             return 1; // No error
         } else {
-            $this->error = $langs->transnoentities("ErrorCanNotCreateDir", $dir);
+            $this->error = $langs->transnoentities("ErrorCanNotCreateDir", $diroutputmassaction);
             return 0;
         }
     }

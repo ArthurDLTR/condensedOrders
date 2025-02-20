@@ -43,6 +43,12 @@ CondensedOrdersAbout = About CondensedOrders
 CondensedOrdersAboutPage = CondensedOrders about page
 
 #
+# Settings page
+#
+WIDMANN_PDF_DESCR = PDF for massive preparation of orders
+BRAHE_PDF_DESCR = Simple PDF model for orders preparation
+
+#
 # Sample page
 #
 CondensedOrdersArea = Home CondensedOrders
@@ -63,4 +69,7 @@ QTY_TOTALE = Totale quantity
 # More translations for the shipping list 
 #
 CreateCondensedOrders = PDF for orders preparation
+CreateCondensedTable = Table to prepare orders
+CreateCondensedWidmann = PDF for massive preparation
 CONDENSEDORDERS_TABLE = Print the summary table to prepare orders
+CONDENSED_TABLE = Table

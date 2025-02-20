@@ -51,6 +51,12 @@ class CondensedOrders extends CommonObject {
 	 * @var string name of pdf model
 	 */
 	public $model_pdf;
+	
+	/**
+	 * @var string context of the object
+	 */
+	public $context;
+
     /**
 	 * Constructor. Define names, constants, directories, boxes, permissions
 	 *

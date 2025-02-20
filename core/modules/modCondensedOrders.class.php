@@ -76,7 +76,7 @@ class modCondensedOrders extends DolibarrModules
 		$this->editor_squarred_logo = '';					// Must be image filename into the module/img directory followed with @modulename. Example: 'myimage.png@condensedorders'
 
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated', 'experimental_deprecated' or a version string like 'x.y.z'
-		$this->version = '0.1';
+		$this->version = '0.5';
 		// Url to the file with your last numberversion of this module
 		//$this->url_last_version = 'http://www.example.com/versionmodule.txt';
 
@@ -310,21 +310,21 @@ class modCondensedOrders extends DolibarrModules
 		// Add here entries to declare new menus
 		/* BEGIN MODULEBUILDER TOPMENU */
 		
-		$this->menu[$r++] = array(
-			'fk_menu'=>'fk_mainmenu=commercial,fk_leftmenu=orders', // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
-			'type'=>'left', // This is a Top menu entry
-			'titre'=>'ModuleCondensedOrdersName',
-			// 'prefix' => img_picto('', $this->picto, 'class="pictofixedwidth valignmiddle"'),
-			// 'mainmenu'=>'condensedorders',
-			'leftmenu'=>'Condensed Orders',
-			'url'=>'/condensedorders/condensedordersindex.php',
-			'langs'=>'condensedorders@condensedorders', // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-			'position'=>100,
-			'enabled'=>'isModEnabled("condensedorders")', // Define condition to show or hide menu entry. Use 'isModEnabled("condensedorders")' if entry must be visible if module is enabled.
-			'perms'=>'1', // Use 'perms'=>'$user->hasRight("condensedorders", "myobject", "read")' if you want your menu with a permission rules
-			'target'=>'',
-			'user'=>2, // 0=Menu for internal users, 1=external users, 2=both
-		);
+		// $this->menu[$r++] = array(
+		// 	'fk_menu'=>'fk_mainmenu=commercial,fk_leftmenu=orders', // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+		// 	'type'=>'left', // This is a Top menu entry
+		// 	'titre'=>'ModuleCondensedOrdersName',
+		// 	// 'prefix' => img_picto('', $this->picto, 'class="pictofixedwidth valignmiddle"'),
+		// 	// 'mainmenu'=>'condensedorders',
+		// 	'leftmenu'=>'Condensed Orders',
+		// 	'url'=>'/condensedorders/condensedordersindex.php',
+		// 	'langs'=>'condensedorders@condensedorders', // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+		// 	'position'=>100,
+		// 	'enabled'=>'isModEnabled("condensedorders")', // Define condition to show or hide menu entry. Use 'isModEnabled("condensedorders")' if entry must be visible if module is enabled.
+		// 	'perms'=>'1', // Use 'perms'=>'$user->hasRight("condensedorders", "myobject", "read")' if you want your menu with a permission rules
+		// 	'target'=>'',
+		// 	'user'=>2, // 0=Menu for internal users, 1=external users, 2=both
+		// );
 		
 		/* END MODULEBUILDER TOPMENU */
 

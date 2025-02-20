@@ -38,11 +38,12 @@ class ActionsCondensedOrders {
      * @return  int             -1 to throw an error, 0 if no error
      */
     public function addMoreMassActions($parameters, $object, $action = 'create'){
-        global $arrayofaction, $langs;
+        global $arrayofaction;
+        global $langs;
 
-        $label = img_picto('', 'pdf', 'style="color:purple"').$langs->trans("CreateCondensedOrders");
-        $label_wid = img_picto('', 'pdf', 'style="color:purple"').$langs->trans("CreateCondensedWidmann");
-        $label_table = img_picto('', 'pdf', 'style="color:orange"').$langs->trans("CreateCondensedTable");
+        $label = img_picto('', 'pdf', 'style="color:purple"').' '.$langs->trans("CreateCondensedOrders");
+        $label_wid = img_picto('', 'pdf', 'style="color:red"').' '.$langs->trans("CreateCondensedWidmann");
+        $label_table = img_picto('', 'pdf', 'style="color:orange"').' '.$langs->trans("CreateCondensedTable");
 
         $this->resprints = '';
         $this->resprints.= '<option value="CREATE_CONDENSED_ORDERS" data-html="'. dol_escape_htmltag($label) .'"> '. $label .'</option>';
@@ -194,6 +195,7 @@ class ActionsCondensedOrders {
             $arrayOrder = GETPOST("toselect", "array");
             $arrayLineExpe = array();
             $arrayLineProduct = array();
+            $context = $parameters['currentcontext'];
             if(count($arrayOrder) > 0){
                 foreach ($arrayOrder as $key => $value){
                     switch($parameters['currentcontext']){
@@ -236,18 +238,19 @@ class ActionsCondensedOrders {
                     }
                     $expe->fetch($value);
                     // $arrayOrder[$key] = (int) $value;
-                    // var_dump($expe->socid);
+                    // var_dump($expe->lines->fk_product);
                     foreach ($expe->lines as $key => $line){
                         if ($line->fk_product > 0 && !$line->product_type){
                             if(!isset($arrayLineProduct[$line->fk_product])){
                                 $arrayLineProduct[$line->fk_product] = array(
                                     'ref' => $line->product_ref,
+                                    'prod_id' => $line->fk_product,
                                     'qte_det' => array(),
                                     'qte_tot' => $arrayLineExpe[$line->fk_product]['qty']
                                 );
-                                $arrayLineProduct[$line->fk_product]['qte_det'][0] = array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_expe' => $expe->ref);
+                                $arrayLineProduct[$line->fk_product]['qte_det'][0] = array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_client' => $expe->ref_client);
                             } else {
-                                array_push($arrayLineProduct[$line->fk_product]['qte_det'], array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_expe' => $expe->ref));
+                                array_push($arrayLineProduct[$line->fk_product]['qte_det'], array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_client' => $expe->ref_client));
                                 // $arrayLineProduct[$line->fk_product]['qte_det'][$i] = array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_expe' => $expe->ref);
                             }
                         }
@@ -269,20 +272,20 @@ class ActionsCondensedOrders {
             if (GETPOST('massaction') == 'CREATE_CONDENSED_ORDERS'){
                 $obj = new CondensedOrders($db);
                 $obj->model_pdf = 'brahe';
-                // $obj->lines = $arrayLineOrder;
+                $obj->context = $context;
                 $obj->products = $arrayLineProduct;
                 //print 'modele : '.$obj_tmp->model_pdf.'\n lignes : '.$obj_tmp->lines.'\nproduits : '.$obj_tmp->products;
                 $result = $obj->generateDocument($obj->model_pdf, $outputlangs, $hidedetails, $hidedesc, $hideref);
-                //print $obj_tmp;
+                // print 'res : '.$result;
             }
             if (GETPOST('massaction') == 'CREATE_CONDENSED_WIDMANN'){
                 $obj = new CondensedOrders($db);
                 $obj->model_pdf = 'widmann';
+                $obj->context = $context;
                 $obj->lines = $arrayLineProduct;
-                // $obj->products = $arrayLineProduct;
                 // print 'modele : '.$obj->model_pdf.'\n lignes : '.count($obj->lines);
                 $result = $obj->generateDocument($obj->model_pdf, $outputlangs, $hidedetails, $hidedesc, $hideref);
-                print 'res : '.$result;
+                // print 'res : '.$result;
             }
             /*
             if (GETPOST('massaction') == 'CREATE_CONDENSED_TABLE'){
