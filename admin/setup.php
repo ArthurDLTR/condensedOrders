@@ -500,6 +500,7 @@ foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
 										} else {
 											print $module->description;
 										}
+										
 										print '</td>';
 
 										// Active
@@ -656,7 +657,7 @@ foreach ($dirmodels as $reldir) {
 									print '<a class="reposition" href="'.$_SERVER["PHP_SELF"].'?action=set&token='.newToken().'&value='.urlencode($name).'&scan_dir='.urlencode($module->scandir).'&label='.urlencode($module->name).'">'.img_picto($langs->trans("Disabled"), 'switch_off').'</a>';
 									print "</td>";
 								}
-								$conf->global->CONDENSEDORDERS_ADDON_PDF = 'brahe';
+								// $conf->global->CONDENSEDORDERS_ADDON_PDF = 'brahe';
 								// Default
 								print '<td class="center">';
 								if (getDolGlobalString('CONDENSEDORDERS_ADDON_PDF') == $name) {

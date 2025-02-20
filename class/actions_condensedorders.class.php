@@ -25,7 +25,8 @@
  *  \brief      Description and activation file for module CondensedOrders
  */
 
- require_once DOL_DOCUMENT_ROOT.'/custom/condensedorders/core/modules/modCondensedOrders.class.php';
+require_once DOL_DOCUMENT_ROOT.'/custom/condensedorders/core/modules/modCondensedOrders.class.php';
+require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 
 class ActionsCondensedOrders {
 
@@ -40,10 +41,15 @@ class ActionsCondensedOrders {
         global $arrayofaction, $langs;
 
         $label = img_picto('', 'pdf', 'style="color:purple"').$langs->trans("CreateCondensedOrders");
+        $label_wid = img_picto('', 'pdf', 'style="color:purple"').$langs->trans("CreateCondensedWidmann");
         $label_table = img_picto('', 'pdf', 'style="color:orange"').$langs->trans("CreateCondensedTable");
 
-        $this->resprints = '<option value="CREATE_CONDENSED_ORDERS" data-html="'. dol_escape_htmltag($label) .'"> '. $label .'</option>';
-        $this->resprints.= '<option value="CREATE_CONDENSED_TABLE" data-html="'. dol_escape_htmltag($label_table) .'"> '. $label_table .'</option>';
+        $this->resprints = '';
+        $this->resprints.= '<option value="CREATE_CONDENSED_ORDERS" data-html="'. dol_escape_htmltag($label) .'"> '. $label .'</option>';
+        $this->resprints.= '<option value="CREATE_CONDENSED_WIDMANN" data-html="'. dol_escape_htmltag($label_wid) .'"> '. $label_wid .'</option>';
+        if (getDolGlobalInt('CONDENSEDORDERS_TABLE')){
+            $this->resprints.= '<option value="CREATE_CONDENSED_TABLE" data-html="'. dol_escape_htmltag($label_table) .'"> '. $label_table .'</option>';
+        }
         return 0;
     }
 
@@ -65,20 +71,26 @@ class ActionsCondensedOrders {
         $obj_tmp = new modCondensedOrders($db);
 
 
-        if (GETPOST('massaction') == 'CREATE_CONDENSED_ORDERS' || GETPOST('massaction') == 'CREATE_CONDENSED_TABLE'){
+        if (GETPOST('massaction') == 'CREATE_CONDENSED_ORDERS' || GETPOST('massaction') == 'CREATE_CONDENSED_TABLE' || GETPOST('massaction') == 'CREATE_CONDENSED_WIDMANN'){
             // PDF Generation
             $arrayOrder = GETPOST("toselect", "array");
             $arrayLineExpe = array();
             $arrayLineProduct = array();
             if(count($arrayOrder) > 0){
                 foreach ($arrayOrder as $key => $value){
-                    $expe = new Expedition($db);
+                    switch($parameters['currentcontext']){
+                        case 'orderlist':
+                            $expe = new Commande($db);
+                            break;
+                        case 'shipmentlist':
+                            $expe = new Expedition($db);
+                    }
                     $expe->fetch($value);
                     // print $expe->ref.' : '.count($expe->lines). ' lignes <br>';
                     // $arrayOrder[$key] = (int) $value;
                     // var_dump($expe->socid);
                     foreach ($expe->lines as $key => $line){
-                            // print 'Produit : '.$line->product_ref.' Qty : '.$line->qty.'<br>';
+                        // print 'Produit : '.$line->product_id.' Ref : '.$line->product_ref.'<br>';
                         if ($line->fk_product > 0 && !$line->product_type){
                             
                             if(!isset($arrayLineExpe[$line->fk_product])){
@@ -96,21 +108,28 @@ class ActionsCondensedOrders {
                 }
 
                 foreach ($arrayOrder as $key => $value){
-                    $expe = new Expedition($db);
+                    switch($parameters['currentcontext']){
+                        case 'orderlist':
+                            $expe = new Commande($db);
+                            break;
+                        case 'shipmentlist':
+                            $expe = new Expedition($db);
+                    }
                     $expe->fetch($value);
                     // $arrayOrder[$key] = (int) $value;
-                    // var_dump($expe->socid);
+                    // var_dump($expe->lines->fk_product);
                     foreach ($expe->lines as $key => $line){
                         if ($line->fk_product > 0 && !$line->product_type){
                             if(!isset($arrayLineProduct[$line->fk_product])){
                                 $arrayLineProduct[$line->fk_product] = array(
                                     'ref' => $line->product_ref,
+                                    'prod_id' => $line->fk_product,
                                     'qte_det' => array(),
                                     'qte_tot' => $arrayLineExpe[$line->fk_product]['qty']
                                 );
-                                $arrayLineProduct[$line->fk_product]['qte_det'][0] = array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_expe' => $expe->ref);
+                                $arrayLineProduct[$line->fk_product]['qte_det'][0] = array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_client' => $expe->ref_client);
                             } else {
-                                array_push($arrayLineProduct[$line->fk_product]['qte_det'], array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_expe' => $expe->ref));
+                                array_push($arrayLineProduct[$line->fk_product]['qte_det'], array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_client' => $expe->ref_client));
                                 // $arrayLineProduct[$line->fk_product]['qte_det'][$i] = array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_expe' => $expe->ref);
                             }
                         }
@@ -119,6 +138,7 @@ class ActionsCondensedOrders {
 
                 if (GETPOST('massaction') == 'CREATE_CONDENSED_TABLE'){
                     $soc = new Societe($db);
+                    $prod = new Product($db);
                     // Affichage du tableau contenant les informations pour chaque produit
                     print '<table class="noborder centpercent">';
                     print '<tr class="liste_titre">
@@ -127,12 +147,17 @@ class ActionsCondensedOrders {
                         <td>Qté totale</td>
                     </tr>';
                     foreach($arrayLineProduct as $key => $line){
+                        $prod->fetch($line['prod_id']);
                         print '<tr>
-                            <td>'.$line['ref'].'</td>';
+                            <td width="30%">'.$line['ref'].' - '.$prod->label.'</td>';
                             print '<td>';
                             foreach($line['qte_det'] as $key => $det){
                                 $soc->fetch($det['soc']);
-                                print $det['qte_expe'].' venant de '.$det['ref_expe'].' pour '.$soc->getNomUrl().'<br>';
+                                if (!$det['ref_client']){
+                                    print $det['qte_expe'].' pour '.$soc->name.'<br>';
+                                }else{
+                                    print $det['qte_expe'].' pour '.$soc->name.' ('.$det['ref_client'].')<br>';
+                                }
                             }
                             print '</td>';
                             print '<td>'.$line['qte_tot'].'</td>
@@ -162,7 +187,7 @@ class ActionsCondensedOrders {
         //$outputlangs->setDefaultLang($newlang);
         $obj_tmp = new modCondensedOrders($db);
 
-        if (GETPOST('massaction') == 'CREATE_CONDENSED_ORDERS' || GETPOST('massaction') == 'CREATE_CONDENSED_TABLE'){
+        if (GETPOST('massaction') == 'CREATE_CONDENSED_ORDERS' || GETPOST('massaction') == 'CREATE_CONDENSED_TABLE' || GETPOST('massaction') == 'CREATE_CONDENSED_WIDMANN'){
             // PDF Generation
             $arrayOrder = GETPOST("toselect", "array");
             // PDF Generation
@@ -171,7 +196,14 @@ class ActionsCondensedOrders {
             $arrayLineProduct = array();
             if(count($arrayOrder) > 0){
                 foreach ($arrayOrder as $key => $value){
-                    $expe = new Expedition($db);
+                    switch($parameters['currentcontext']){
+                        case 'orderlist':
+                            $expe = new Commande($db);
+                            break;
+                        case 'shipmentlist':
+                            $expe = new Expedition($db);
+                    }
+                    // $expe = new Expedition($db);
                     $expe->fetch($value);
                     // print $expe->ref.' : '.count($expe->lines). ' lignes <br>';
                     // $arrayOrder[$key] = (int) $value;
@@ -195,7 +227,13 @@ class ActionsCondensedOrders {
                 }
 
                 foreach ($arrayOrder as $key => $value){
-                    $expe = new Expedition($db);
+                    switch($parameters['currentcontext']){
+                        case 'orderlist':
+                            $expe = new Commande($db);
+                            break;
+                        case 'shipmentlist':
+                            $expe = new Expedition($db);
+                    }
                     $expe->fetch($value);
                     // $arrayOrder[$key] = (int) $value;
                     // var_dump($expe->socid);
@@ -236,6 +274,15 @@ class ActionsCondensedOrders {
                 //print 'modele : '.$obj_tmp->model_pdf.'\n lignes : '.$obj_tmp->lines.'\nproduits : '.$obj_tmp->products;
                 $result = $obj->generateDocument($obj->model_pdf, $outputlangs, $hidedetails, $hidedesc, $hideref);
                 //print $obj_tmp;
+            }
+            if (GETPOST('massaction') == 'CREATE_CONDENSED_WIDMANN'){
+                $obj = new CondensedOrders($db);
+                $obj->model_pdf = 'widmann';
+                $obj->lines = $arrayLineProduct;
+                // $obj->products = $arrayLineProduct;
+                // print 'modele : '.$obj->model_pdf.'\n lignes : '.count($obj->lines);
+                $result = $obj->generateDocument($obj->model_pdf, $outputlangs, $hidedetails, $hidedesc, $hideref);
+                print 'res : '.$result;
             }
             /*
             if (GETPOST('massaction') == 'CREATE_CONDENSED_TABLE'){

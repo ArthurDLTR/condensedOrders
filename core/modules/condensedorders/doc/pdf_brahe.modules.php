@@ -70,8 +70,8 @@ class pdf_brahe extends ModelePdfExpedition
         global $langs, $mysoc;
 
         $this->db = $db;
-        $this->name = 'brahe';
-        $this->description = $langs->trans("BRAH_PDF_DESCR");
+        $this->name = 'brahe'; // Tycho Brahe, astronome au nez d'or
+        $this->description = $langs->trans("BRAHE_PDF_DESCR");
         $this->update_main_doc_field = 1; 
 
         // Dimension page
@@ -261,11 +261,15 @@ class pdf_brahe extends ModelePdfExpedition
                     <td width="10%">Qté totale</td>
                 </tr>';
 			foreach($object->products as $key => $line){
-				$html.= '<tr><td>'.$line['ref'].'</td>';
+				$html.= '<tr><td width="30%">'.$line['ref'].' - '.$prod->label.'</td>';
 				$html.= '<td>';
 				foreach($line['qte_det'] as $key => $det){
 					$soc->fetch($det['soc']);
-					$html.= $det['qte_expe'].' de '.$det['ref_expe'].' pour '.$soc->nom.'<br>';
+					if (!$det['ref_client']){
+						$html.= $det['qte_expe'].' pour '.$soc->name.'<br>';
+					}else{
+						$html.= $det['qte_expe'].' pour '.$soc->name.' ('.$det['ref_client'].')<br>';
+					}
 				}
 				$html.= '</td>';
 				$html.= '<td>'.$line['qte_tot'].'</td></tr>';
