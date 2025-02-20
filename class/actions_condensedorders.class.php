@@ -38,15 +38,14 @@ class ActionsCondensedOrders {
      * @return  int             -1 to throw an error, 0 if no error
      */
     public function addMoreMassActions($parameters, $object, $action = 'create'){
-        global $arrayofaction;
-        global $langs;
-
-        $label = img_picto('', 'pdf', 'style="color:purple"').' '.$langs->trans("CreateCondensedOrders");
+        global $arrayofaction, $langs;
+        // var_dump($langs);
+        $langs->loadLangs(array("condensedorders@condensedorders"));
+        $label = img_picto('', 'pdf', 'style="color:purple"').$langs->trans("CreateCondensedOrders");
         $label_wid = img_picto('', 'pdf', 'style="color:red"').' '.$langs->trans("CreateCondensedWidmann");
         $label_table = img_picto('', 'pdf', 'style="color:orange"').' '.$langs->trans("CreateCondensedTable");
-
-        $this->resprints = '';
-        $this->resprints.= '<option value="CREATE_CONDENSED_ORDERS" data-html="'. dol_escape_htmltag($label) .'"> '. $label .'</option>';
+        
+        $this->resprints = '<option value="CREATE_CONDENSED_ORDERS" data-html="'. dol_escape_htmltag($label) .'"> '. $label .'</option>';
         $this->resprints.= '<option value="CREATE_CONDENSED_WIDMANN" data-html="'. dol_escape_htmltag($label_wid) .'"> '. $label_wid .'</option>';
         if (getDolGlobalInt('CONDENSEDORDERS_TABLE')){
             $this->resprints.= '<option value="CREATE_CONDENSED_TABLE" data-html="'. dol_escape_htmltag($label_table) .'"> '. $label_table .'</option>';
@@ -268,7 +267,7 @@ class ActionsCondensedOrders {
             if(empty($hideref)){
                 $hideref = (getDolGlobalString('MAIN_GENERATE_DOCUMENTS_HIDE_REF') ? 1 : 0);
             }
-            dol_include_once('/condensedorders/class/condensedorders.class.php');
+            require_once DOL_DOCUMENT_ROOT.'/custom/condensedorders/class/condensedorders.class.php';
             if (GETPOST('massaction') == 'CREATE_CONDENSED_ORDERS'){
                 $obj = new CondensedOrders($db);
                 $obj->model_pdf = 'brahe';
