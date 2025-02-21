@@ -26,6 +26,7 @@
  */
 
 require_once DOL_DOCUMENT_ROOT.'/custom/condensedorders/core/modules/modCondensedOrders.class.php';
+require_once DOL_DOCUMENT_ROOT.'/custom/condensedorders/class/CondensedOrders.class.php';
 require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 
 class ActionsCondensedOrders {
@@ -184,7 +185,7 @@ class ActionsCondensedOrders {
         global $langs;
 
         $outputlangs = new Translate("", $conf);
-        //$outputlangs->setDefaultLang($newlang);
+        $outputlangs->setDefaultLang();
         $obj_tmp = new modCondensedOrders($db);
 
         if (GETPOST('massaction') == 'CREATE_CONDENSED_ORDERS' || GETPOST('massaction') == 'CREATE_CONDENSED_TABLE' || GETPOST('massaction') == 'CREATE_CONDENSED_WIDMANN'){
@@ -267,7 +268,6 @@ class ActionsCondensedOrders {
             if(empty($hideref)){
                 $hideref = (getDolGlobalString('MAIN_GENERATE_DOCUMENTS_HIDE_REF') ? 1 : 0);
             }
-            require_once DOL_DOCUMENT_ROOT.'/custom/condensedorders/class/condensedorders.class.php';
             if (GETPOST('massaction') == 'CREATE_CONDENSED_ORDERS'){
                 $obj = new CondensedOrders($db);
                 $obj->model_pdf = 'brahe';
