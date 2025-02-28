@@ -178,7 +178,7 @@ class modCondensedOrders extends DolibarrModules
 
 		// Array to add new pages in new tabs
 		/* BEGIN MODULEBUILDER TABS */
-		$this->tabs = array('order:+condensedorders:CondensedOrders:condensedorders@condensedorders:/condensedorders/condensedordersindex.php?id=__ID__');
+		// $this->tabs = array('order:+condensedorders:CondensedOrders:condensedorders@condensedorders:/condensedorders/condensedordersindex.php?id=__ID__');
 		/* END MODULEBUILDER TABS */
 		// Example:
 		// To add a new tab identified by code tabname1

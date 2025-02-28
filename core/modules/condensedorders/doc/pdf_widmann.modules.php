@@ -592,6 +592,12 @@ class pdf_widmann extends ModelePdfExpedition
 						$curY = $tab_top_newpage;
 					}
 
+					// We suppose that a too long description is moved completely on next page
+					if ($pageposafter > $pageposbefore) {
+						$pdf->setPage($pageposafter);
+						$curY = $tab_top_newpage;
+					}
+
 					$pdf->SetFont('', '', $default_font_size - 1); // We reposition the default font
 
                     // var_dump($line);
@@ -628,7 +634,7 @@ class pdf_widmann extends ModelePdfExpedition
 					if (getDolGlobalString('MAIN_PDF_DASH_BETWEEN_LINES') && $i < ($nblines - 1)) {
 						$pdf->setPage($pageposafter);
 						$pdf->SetLineStyle(array('dash' => '1,1', 'color' => array(80, 80, 80)));
-						//$pdf->SetDrawColor(190,190,200);
+						// $pdf->SetDrawColor(190,190,200);
 						$pdf->line($this->marge_gauche, $nexY, $this->page_largeur - $this->marge_droite, $nexY);
 						$pdf->SetLineStyle(array('dash' => 0));
 					}
@@ -652,7 +658,7 @@ class pdf_widmann extends ModelePdfExpedition
 							$pdf->useTemplate($tplidx);
 						}
 					}
-					if (isset($line->pagebreak) && $line->pagebreak) {
+					if (isset($object->lines[$i+1]->pagebreak) && $object->lines[$i+1]->pagebreak) {
 						if ($pagenb == 1) {
 							$this->_tableau($pdf, $tab_top, $this->page_hauteur - $tab_top - $heightforfooter, 0, $outputlangs, 0, 1);
 						} else {
@@ -684,6 +690,9 @@ class pdf_widmann extends ModelePdfExpedition
                 
                 // Pagefoot
 				$this->_pagefoot($pdf, $object, $outputlangs);
+				if (method_exists($pdf, 'AliasNbPages')) {
+					$pdf->AliasNbPages();
+				}
 
                 $pdf->Close();
 
