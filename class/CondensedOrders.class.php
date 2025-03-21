@@ -103,4 +103,82 @@ class CondensedOrders extends CommonObject {
 
 		return $this->commonGenerateDocument($modelpath, $modele, $outputlangs, $hidedetails, $hidedesc, $hideref, $moreparams);
 	}
+
+	/**
+	 * Get the distance between the warehouse address and a thirdparty address
+	 * 
+	 * @param	int			$socid		ID of the thirdparty you want to know the distance
+	 * @return	int 					Distance between the two addresses
+	 */
+    public function getDistance($socid){
+		// Getting the coordinates of the origin point 
+        // $origin_addr_txt = "13 Route Des Chenevières, 10200 Soulaines-Dhuys, France";
+		// $origin_addr = urlencode($origin_addr_txt);
+		// $origin_url = "https://api.opencagedata.com/geocode/v1/json?q=".$origin_addr."&key=9841e655d7da433fadb910898385f29a";
+
+		// $ch = curl_init();
+		// curl_setopt($ch, CURLOPT_URL, $url);
+		// curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		// curl_setopt($ch, CURLOPT_PROXYPORT, 3128);
+		// curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+		// curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+		// $response_origin = curl_exec($ch);
+		// curl_close($ch);
+
+		// $response_origin_a = json_decode($response_origin);
+
+		$lat_origin = 48.37261565174393;
+		$lng_origin = 4.7282770826216876;
+		
+		// print "latityde obtenue : ".$lat_origin." et longitude : ".$lng_origin."<br>";
+
+		// Getting the coordinates of the destination
+		$sql = "SELECT s.address as addr, s.zip as zip, s.town as town";
+		$sql.= " FROM ".MAIN_DB_PREFIX."societe as s";
+		$sql.= " WHERE s.rowid = ".$socid;
+
+		$result = $this->db->query($sql);
+		if ($result){
+			$obj = $this->db->fetch_object($result);
+		} else {
+			$this->db->error();
+		}
+
+		$addr_txt = $obj->addr.", ".$obj->zip." ".$obj->town.", France";
+		$addr = urlencode($addr_txt);
+		$url = "https://api.opencagedata.com/geocode/v1/json?q=".$addr."&key=9841e655d7da433fadb910898385f29a";
+
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($ch, CURLOPT_PROXYPORT, 3128);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+		$response = curl_exec($ch);
+		curl_close($ch);
+
+		$response_a = json_decode($response);
+
+		$lat = $response_a->results[0]->geometry->lat;
+		$lng = $response_a->results[0]->geometry->lng;
+		// var_dump($response_a);
+		// print "latityde obtenue : ".$lat." et longitude : ".$lng."<br>";
+
+		return $this->calcDistance($lat_origin, $lng_origin, $lat, $lng);
+    }
+
+	/**
+	 * Function to calculate the distance between two coordinates
+	 * 
+	 * @param	int 		$lat_origin		Origin latitude
+	 * @param 	int			$lng_origin		Origin longitude
+	 * @param	int			$lat_dest		Destination latitude
+	 * @param	int			$lng_dest		Destination longitude
+	 */
+	public function calcDistance($lat_origin, $lng_origin, $lat_dest, $lng_dest){
+		$theta = $lng_origin - $lng_dest;
+		$dist = sin(deg2rad($lat_origin)) * sin(deg2rad($lat_dest)) + cos(deg2rad($lat_origin)) * cos(deg2rad($lat_dest)) * cos(deg2rad($theta));
+		$dist = rad2deg(acos($dist));
+		return $dist * 60 * 1.1515 * 1.609344;
+	}
 }

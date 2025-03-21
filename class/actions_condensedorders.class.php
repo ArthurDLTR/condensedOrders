@@ -70,6 +70,7 @@ class ActionsCondensedOrders {
         $outputlangs = new Translate("", $conf);
         //$outputlangs->setDefaultLang($newlang);
         $obj_tmp = new modCondensedOrders($db);
+        $obj_dist = new CondensedOrders($db);
 
 
         if (GETPOST('massaction') == 'CREATE_CONDENSED_ORDERS' || GETPOST('massaction') == 'CREATE_CONDENSED_TABLE' || GETPOST('massaction') == 'CREATE_CONDENSED_WIDMANN'){
@@ -128,13 +129,20 @@ class ActionsCondensedOrders {
                                     'qte_det' => array(),
                                     'qte_tot' => $arrayLineExpe[$line->fk_product]['qty']
                                 );
-                                $arrayLineProduct[$line->fk_product]['qte_det'][0] = array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_client' => $expe->ref_client);
+                                $arrayLineProduct[$line->fk_product]['qte_det'][0] = array('soc' => $expe->socid, 'dist' => $obj_dist->getDistance($expe->socid), 'qte_expe' => $line->qty, 'ref_client' => $expe->ref_client);
                             } else {
-                                array_push($arrayLineProduct[$line->fk_product]['qte_det'], array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_client' => $expe->ref_client));
+                                array_push($arrayLineProduct[$line->fk_product]['qte_det'], array('soc' => $expe->socid, 'dist' => $obj_dist->getDistance($expe->socid), 'qte_expe' => $line->qty, 'ref_client' => $expe->ref_client));
                                 // $arrayLineProduct[$line->fk_product]['qte_det'][$i] = array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_expe' => $expe->ref);
                             }
                         }
                     }
+                }
+
+                // Sort the qte_det array inside each line of arrayLineProduct
+                foreach ($arrayLineProduct as $key => $line){
+                    usort($line['qte_det'], function ($a, $b) { return !strcmp($a['dist'], $b['dist']); });
+                    // var_dump($line['qte_det']);
+                    print '<br>';
                 }
 
                 if (GETPOST('massaction') == 'CREATE_CONDENSED_TABLE'){
@@ -196,6 +204,7 @@ class ActionsCondensedOrders {
             $arrayLineExpe = array();
             $arrayLineProduct = array();
             $context = $parameters['currentcontext'];
+            $obj_dist = new CondensedOrders($db);
             if(count($arrayOrder) > 0){
                 foreach ($arrayOrder as $key => $value){
                     switch($parameters['currentcontext']){
@@ -248,14 +257,20 @@ class ActionsCondensedOrders {
                                     'qte_det' => array(),
                                     'qte_tot' => $arrayLineExpe[$line->fk_product]['qty']
                                 );
-                                $arrayLineProduct[$line->fk_product]['qte_det'][0] = array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_client' => $expe->ref_client);
+                                $arrayLineProduct[$line->fk_product]['qte_det'][0] = array('soc' => $expe->socid, 'dist' => $obj_dist->getDistance($expe->socid), 'qte_expe' => $line->qty, 'ref_client' => $expe->ref_client);
                             } else {
-                                array_push($arrayLineProduct[$line->fk_product]['qte_det'], array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_client' => $expe->ref_client));
+                                array_push($arrayLineProduct[$line->fk_product]['qte_det'], array('soc' => $expe->socid, 'dist' => $obj_dist->getDistance($expe->socid), 'qte_expe' => $line->qty, 'ref_client' => $expe->ref_client));
                                 // $arrayLineProduct[$line->fk_product]['qte_det'][$i] = array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_expe' => $expe->ref);
                             }
                         }
                     }
                 }
+            }
+
+            // Sort the qte_det array inside each line of arrayLineProduct
+            foreach ($arrayLineProduct as $key => $line){
+                usort($line['qte_det'], function ($a, $b) { return strcmp($a['dist'], $b['dist']); });
+                // var_dump($line['qte_det']);
             }
 
             if(empty($hidedetails)){
