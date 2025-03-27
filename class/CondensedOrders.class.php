@@ -174,11 +174,37 @@ class CondensedOrders extends CommonObject {
 	 * @param 	int			$lng_origin		Origin longitude
 	 * @param	int			$lat_dest		Destination latitude
 	 * @param	int			$lng_dest		Destination longitude
+	 * 
+	 * @return 	int							Distance between the origin and the distance
 	 */
 	public function calcDistance($lat_origin, $lng_origin, $lat_dest, $lng_dest){
 		$theta = $lng_origin - $lng_dest;
 		$dist = sin(deg2rad($lat_origin)) * sin(deg2rad($lat_dest)) + cos(deg2rad($lat_origin)) * cos(deg2rad($lat_dest)) * cos(deg2rad($theta));
 		$dist = rad2deg(acos($dist));
 		return $dist * 60 * 1.1515 * 1.609344;
+	}
+
+	/**
+	 * Function to get the weight of a product given in parameter
+	 * 
+	 * @param	int 		$idprod			ID of a product
+	 * 
+	 * @return	int							Wieght of the product
+	 */
+	public function getWeight($idprod){
+		$sql = "SELECT p.weight as w, p.weight_units as wunits";
+		$sql.= " FROM ".MAIN_DB_PREFIX."product as p";
+		$sql.= " WHERE p.rowid = ".$idprod;
+
+		$result = $this->db->query($sql);
+		if ($result){
+			$obj = $this->db->fetch_object($result);
+		} else {
+			$this->db->error();
+		}
+
+		// print "Poids de ". $idprod ." : ". $obj->w ." unités : ".$obj->wunits;
+		// print "Poids calculé : " . $obj->w * (10 ** $obj->wunits). "<br>";
+		return $obj->w * (10 ** $obj->wunits);
 	}
 }

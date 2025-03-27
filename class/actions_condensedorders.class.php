@@ -126,6 +126,7 @@ class ActionsCondensedOrders {
                                 $arrayLineProduct[$line->fk_product] = array(
                                     'ref' => $line->product_ref,
                                     'prod_id' => $line->fk_product,
+                                    'weight' => $obj_dist->getWeight($line->fk_product),
                                     'qte_det' => array(),
                                     'qte_tot' => $arrayLineExpe[$line->fk_product]['qty']
                                 );
@@ -151,9 +152,20 @@ class ActionsCondensedOrders {
                     foreach ($arrayLineProduct as $key => $line){
                         usort($line['qte_det'], function ($a, $b) { return !strcmp($a['dist'], $b['dist']); });
                         // var_dump($line['qte_det']);
-                        print '<br>';
+                        // print '<br>';
                     } 
                 }
+
+                if(getDolGlobalInt('CONDENSEDORDERS_WEIGHT')){
+                    usort($arrayLineProduct, function($a, $b) {return $a['weight'] < $b['weight'];});
+                }
+
+                // Test pour voir si le tableau est bien trié dans l'ordre de poids décroissant
+                /* 
+                foreach ($arrayLineProduct as $key => $line){ 
+                    print 'Produit : '. $line['ref'] . ' poids : ' . $line['weight'] .'<br>';
+                } 
+                    */
 
                 if (GETPOST('massaction') == 'CREATE_CONDENSED_TABLE'){
                     $soc = new Societe($db);
@@ -264,6 +276,7 @@ class ActionsCondensedOrders {
                                 $arrayLineProduct[$line->fk_product] = array(
                                     'ref' => $line->product_ref,
                                     'prod_id' => $line->fk_product,
+                                    'weight' => $obj_dist->getWeight($line->fk_product),
                                     'qte_det' => array(),
                                     'qte_tot' => $arrayLineExpe[$line->fk_product]['qty']
                                 );

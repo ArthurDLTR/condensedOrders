@@ -2,7 +2,7 @@
 
 ## Features
 
-Description of the module...
+Module to have a more global vision of the orders during their preparation with different factors to sort them and multiples PDF models to print them
 
 <!--
 ![Screenshot condensedorders](img/screenshot_condensedorders.png?raw=true "CondensedOrders"){imgmd}
