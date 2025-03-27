@@ -129,10 +129,18 @@ class ActionsCondensedOrders {
                                     'qte_det' => array(),
                                     'qte_tot' => $arrayLineExpe[$line->fk_product]['qty']
                                 );
-                                $arrayLineProduct[$line->fk_product]['qte_det'][0] = array('soc' => $expe->socid, /*'dist' => $obj_dist->getDistance($expe->socid),*/ 'qte_expe' => $line->qty, 'ref_client' => $expe->ref_client);
+                                if (getDolGlobalInt('CONDENSEDORDERS_LOCATION')){
+                                    $arrayLineProduct[$line->fk_product]['qte_det'][0] = array('soc' => $expe->socid, 'dist' => $obj_dist->getDistance($expe->socid), 'qte_expe' => $line->qty, 'ref_client' => $expe->ref_client);
+                                } else {
+                                    $arrayLineProduct[$line->fk_product]['qte_det'][0] = array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_client' => $expe->ref_client);
+                                }
                             } else {
-                                array_push($arrayLineProduct[$line->fk_product]['qte_det'], array('soc' => $expe->socid, /*'dist' => $obj_dist->getDistance($expe->socid),*/ 'qte_expe' => $line->qty, 'ref_client' => $expe->ref_client));
-                                // $arrayLineProduct[$line->fk_product]['qte_det'][$i] = array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_expe' => $expe->ref);
+                                if (getDolGlobalInt('CONDENSEDORDERS_LOCATION')){
+                                    array_push($arrayLineProduct[$line->fk_product]['qte_det'], array('soc' => $expe->socid, 'dist' => $obj_dist->getDistance($expe->socid), 'qte_expe' => $line->qty, 'ref_client' => $expe->ref_client));
+                                    // $arrayLineProduct[$line->fk_product]['qte_det'][$i] = array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_expe' => $expe->ref);
+                                } else {
+                                    array_push($arrayLineProduct[$line->fk_product]['qte_det'], array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_client' => $expe->ref_client));
+                                }
                             }
                         }
                     }
