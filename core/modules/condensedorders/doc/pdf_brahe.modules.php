@@ -263,7 +263,7 @@ class pdf_brahe extends ModelePdfExpedition
             $pdf->SetDrawColor(128, 128, 128);
 			$pdf->addPage();
             $pdf->Open();
-			$html = '<style>
+			$html = '<!DOCTYPE html><html><style>
 				*{
 					font-size: 10px;
 				}
@@ -274,7 +274,7 @@ class pdf_brahe extends ModelePdfExpedition
 					border: 1px solid #000;
 					text-align:center;
 				}
-			</style>';
+			</style><body>';
 			$html.= '<table>';
             $html.= '<tr class="title">
                     <td width="30%">Réf Produit</td>
@@ -296,7 +296,7 @@ class pdf_brahe extends ModelePdfExpedition
 				$html.= '</td>';
 				$html.= '<td>'.$line['qte_tot'].'</td></tr>';
 			}
-			$html.= '</table>';
+			$html.= '</table></body></html>';
 			$pdf->writeHTMLCell(0, 0, 10, 10, $html);
 			
 			//print $html;
