@@ -74,3 +74,6 @@ CreateCondensedWidmann = PDF de préparation de commandes
 CONDENSEDORDERS_TABLE = Afficher le tableau de résumé de préparation de commandes
 CONDENSED_TABLE = Tableau
 CONDENSEDORDERS_LOCATION = Utilisation de la location GPS pour ranger les tiers dans l'ordre inverse de distance (ralentit la génération des documents et de la table)
+CONDENSEDORDERS_WEIGHT = Tri des produits du plus lourd au moins lourd
+CONDENSEDORDERS_TAG = Tri des produits par tag
+CONDENSEDORDERS_DESCRIPTION = Si aucun tri n'est sélectionné, le tri se fait selon l'ordre alphabétique des références. Une seule méthode de tri peut être sélectionnée, Ordre de priorité : Location > Poids >  Tag.

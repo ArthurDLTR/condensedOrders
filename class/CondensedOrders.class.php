@@ -207,4 +207,26 @@ class CondensedOrders extends CommonObject {
 		// print "Poids calculé : " . $obj->w * (10 ** $obj->wunits). "<br>";
 		return $obj->w * (10 ** $obj->wunits);
 	}
+
+	/**
+	 * Function to get the tag of a product
+	 * 
+	 * @param 	int 	$idprod		Id of a product
+	 * 
+	 * @return 	String				Most precise tag
+	 */
+	public function getTag($idprod){
+		$sql = "SELECT tagp.fk_categorie as tag";
+		$sql.= " FROM ".MAIN_DB_PREFIX."categorie_product as tagp";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."categorie as tagc on tagc.rowid = tagp.fk_categorie";
+		$sql.= " WHERE tagc.fk_parent = 0 AND tagc.rowid != 140 AND tagp.fk_product = ".$idprod;
+		$result = $this->db->query($sql);
+		if ($result){
+			$obj = $this->db->fetch_object($result);
+		} else {
+			$this->db->error();
+		}
+
+		return $obj->tag;
+	}
 }

@@ -126,9 +126,11 @@ $item = $formSetup->newItem('CONDENSEDORDERS_MYPARAM4');
 $item->setAsThirdpartyType();
 */
 // Setup conf for a selection of a boolean
+$formSetup->newItem("CONDENSEDORDERS_DESCRIPTION")->setAsTitle();
 $formSetup->newItem('CONDENSEDORDERS_TABLE')->setAsYesNo();
 $formSetup->newItem('CONDENSEDORDERS_LOCATION')->setAsYesNo();
 $formSetup->newItem('CONDENSEDORDERS_WEIGHT')->setAsYesNo();
+$formSetup->newItem('CONDENSEDORDERS_TAG')->setAsYesNo();
 /*
 // Setup conf for a selection of an email template of type thirdparty
 $formSetup->newItem('CONDENSEDORDERS_MYPARAM6')->setAsEmailTemplate('thirdparty');

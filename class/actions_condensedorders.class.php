@@ -127,6 +127,7 @@ class ActionsCondensedOrders {
                                     'ref' => $line->product_ref,
                                     'prod_id' => $line->fk_product,
                                     'weight' => $obj_dist->getWeight($line->fk_product),
+                                    'tag' => $obj_dist->getTag($line->fk_product),
                                     'qte_det' => array(),
                                     'qte_tot' => $arrayLineExpe[$line->fk_product]['qty']
                                 );
@@ -154,22 +155,20 @@ class ActionsCondensedOrders {
                         // var_dump($line['qte_det']);
                         // print '<br>';
                     } 
-                }
-                
-                // Sort the products' array depending on weight
-                if(getDolGlobalInt('CONDENSEDORDERS_WEIGHT')){
+                } else if(getDolGlobalInt('CONDENSEDORDERS_WEIGHT')){ // Sort the products' array depending on weight
                     usort($arrayLineProduct, function($a, $b) {return $a['weight'] < $b['weight'];});
+                } else if (getDolGlobalInt('CONDENSEDORDERS_TAG')){
+                    usort($arrayLineProduct, function($a, $b) {return $a['tag'] < $b['tag'];});
                 } else { // Or depending on the alphabetical order
                     usort($arrayLineProduct, function($a, $b) {return strcmp($a['ref'], $b['ref']);});
                 }
 
                 // Test pour voir si le tableau est bien trié dans l'ordre de poids décroissant
-                /* 
+                /*
                 foreach ($arrayLineProduct as $key => $line){ 
-                    print 'Produit : '. $line['ref'] . ' poids : ' . $line['weight'] .'<br>';
+                    print 'Produit : '. $line['ref'] . ' tag : ' . $line['tag'] .'<br>';
                 } 
                     */
-
                 if (GETPOST('massaction') == 'CREATE_CONDENSED_TABLE'){
                     $soc = new Societe($db);
                     $prod = new Product($db);
@@ -280,6 +279,7 @@ class ActionsCondensedOrders {
                                     'ref' => $line->product_ref,
                                     'prod_id' => $line->fk_product,
                                     'weight' => $obj_dist->getWeight($line->fk_product),
+                                    'tag' => $obj_dist->getTag($line->fk_product),
                                     'qte_det' => array(),
                                     'qte_tot' => $arrayLineExpe[$line->fk_product]['qty']
                                 );
@@ -307,11 +307,10 @@ class ActionsCondensedOrders {
                     usort($line['qte_det'], function ($a, $b) { return strcmp($a['dist'], $b['dist']); });
                     // var_dump($line['qte_det']);
                 }
-            }
-
-            // Sort the products' array depending on weight
-            if(getDolGlobalInt('CONDENSEDORDERS_WEIGHT')){
+            } else if(getDolGlobalInt('CONDENSEDORDERS_WEIGHT')){ // Sort the products' array depending on weight
                 usort($arrayLineProduct, function($a, $b) {return $a['weight'] < $b['weight'];});
+            } else if (getDolGlobalInt('CONDENSEDORDERS_TAG')){
+                usort($arrayLineProduct, function($a, $b) {return $a['tag'] < $b['tag'];});
             } else { // Or depending on the alphabetical order
                 usort($arrayLineProduct, function($a, $b) {return strcmp($a['ref'], $b['ref']);});
             }
