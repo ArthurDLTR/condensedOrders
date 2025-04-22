@@ -73,3 +73,7 @@ CreateCondensedTable = Table to prepare orders
 CreateCondensedWidmann = PDF for massive preparation
 CONDENSEDORDERS_TABLE = Print the summary table to prepare orders
 CONDENSED_TABLE = Table
+CONDENSEDORDERS_LOCATION = Use of GPS to sort thirdparties in distance reverse order (can higly slow down generation of document or table)
+CONDENSEDORDERS_WEIGHT = Sort products by decreasing weight
+CONDENSEDORDERS_TAG = Sort products by categorie
+CONDENSEDORDERS_DESCRIPTION = If no sort method selected, sort by alphabetical order of the products' ref. Only one sort method can be applied, Priority order : Location > Weight > Categorie.
