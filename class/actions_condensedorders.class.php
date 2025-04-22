@@ -155,9 +155,12 @@ class ActionsCondensedOrders {
                         // print '<br>';
                     } 
                 }
-
+                
+                // Sort the products' array depending on weight
                 if(getDolGlobalInt('CONDENSEDORDERS_WEIGHT')){
                     usort($arrayLineProduct, function($a, $b) {return $a['weight'] < $b['weight'];});
+                } else { // Or depending on the alphabetical order
+                    usort($arrayLineProduct, function($a, $b) {return strcmp($a['ref'], $b['ref']);});
                 }
 
                 // Test pour voir si le tableau est bien trié dans l'ordre de poids décroissant
@@ -304,6 +307,13 @@ class ActionsCondensedOrders {
                     usort($line['qte_det'], function ($a, $b) { return strcmp($a['dist'], $b['dist']); });
                     // var_dump($line['qte_det']);
                 }
+            }
+
+            // Sort the products' array depending on weight
+            if(getDolGlobalInt('CONDENSEDORDERS_WEIGHT')){
+                usort($arrayLineProduct, function($a, $b) {return $a['weight'] < $b['weight'];});
+            } else { // Or depending on the alphabetical order
+                usort($arrayLineProduct, function($a, $b) {return strcmp($a['ref'], $b['ref']);});
             }
                 
             if(empty($hidedetails)){
