@@ -70,7 +70,7 @@ QTY_TOTALE = Quantité totale
 #
 CreateCondensedOrders = PDF Préparation commandes
 CreateCondensedTable = Table Préparation commandes
-CreateCondensedWidmann = PDF de préparation de commandes
+CreateCondensedWidmann = PDF Widmann
 CONDENSEDORDERS_TABLE = Afficher le tableau de résumé de préparation de commandes
 CONDENSED_TABLE = Tableau
 CONDENSEDORDERS_LOCATION = Utilisation de la location GPS pour ranger les tiers dans l'ordre inverse de distance (ralentit la génération des documents et de la table)

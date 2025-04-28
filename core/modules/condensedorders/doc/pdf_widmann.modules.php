@@ -356,6 +356,7 @@ class pdf_widmann extends ModelePdfExpedition
 
 							$posyafter = $pdf->GetY();
 
+							/*
 							if ($posyafter > ($this->page_hauteur - ($heightforfooter + $heightforfreetext + 20))) {	// There is no space left for total+free text
 								$pdf->AddPage('', '', true);
 								$pagenb++;
@@ -366,6 +367,7 @@ class pdf_widmann extends ModelePdfExpedition
 								$pdf->setPageOrientation('', 1, $heightforfooter + $heightforfreetext);
 								//$posyafter = $tab_top_newpage;
 							}
+								*/
 
 
 							// apply note frame to previous pages
