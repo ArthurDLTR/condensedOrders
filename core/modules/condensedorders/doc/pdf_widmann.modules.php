@@ -83,7 +83,7 @@ class pdf_widmann extends ModelePdfExpedition
 		$this->format = array($this->page_largeur, $this->page_hauteur);
 		$this->marge_gauche = getDolGlobalInt('MAIN_PDF_MARGIN_LEFT', 10);
 		$this->marge_droite = getDolGlobalInt('MAIN_PDF_MARGIN_RIGHT', 10);
-		$this->marge_haute = getDolGlobalInt('MAIN_PDF_MARGIN_TOP', 10);
+		$this->marge_haute = getDolGlobalInt('MAIN_PDF_MARGIN_TOP', 10); // Valeur à modifier pour changer la marge du haut de chaque page une fois que les problèmes d'affichage sur plusieurs pages seront réglés
 		$this->marge_basse = getDolGlobalInt('MAIN_PDF_MARGIN_BOTTOM', 10);
     }
 

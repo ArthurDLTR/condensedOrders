@@ -31,6 +31,16 @@ require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 
 class ActionsCondensedOrders {
 
+    public function getNomUrl($parameters, $object, $action){
+        global $langs;
+
+        // print $action; // Affiche le type de page
+        $cond = 10;
+
+        $parameters['label'] = '<br><b>Stock réel : </b>'.$object->stock_reel;
+        return 0;
+    }
+
     /** 
      * Overloading the addMoreActions function
      * @param   parameters      meta data of the hook
