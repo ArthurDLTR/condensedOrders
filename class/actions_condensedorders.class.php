@@ -40,7 +40,12 @@ class ActionsCondensedOrders {
     public function getNomUrl($parameters, $object, $action){
         global $conf, $langs, $hookmanager;
 		include_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
-
+        $option = '';
+        $maxlength = 0;
+        $save_lastsearch_value = -1;
+        $morecss = '';
+        $add_label = 0;
+        $sep = ' - ';
 		$result = '';
         $withpicto = 1;
 
@@ -64,8 +69,8 @@ class ActionsCondensedOrders {
 			$label = implode($object->getTooltipContentArray($params));
 		}
 
-        $label.='<br><b>Stock réel : </b>'.$object->stock_reel;
-
+        $label = $parameters['label'].'<br><b>Stock réel : </b>'.$object->stock_reel;
+        $notooltip = 0;
 		$linkclose = '';
 		if (empty($notooltip)) {
 			if (getDolGlobalString('MAIN_OPTIMIZEFORTEXTBROWSER')) {
