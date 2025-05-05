@@ -41,7 +41,7 @@ class ActionsCondensedOrders {
         global $conf, $langs, $hookmanager;
 		include_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
         // print "Type d'objet est un produit : ".$object->type == Product::TYPE_PRODUCT;
-        if($object->type == Product::TYPE_PRODUCT && $object->type != NULL){
+        if($object instanceof Product){
             $option = '';
             $maxlength = 0;
             $save_lastsearch_value = -1;
@@ -150,7 +150,7 @@ class ActionsCondensedOrders {
         $label_table = img_picto('', 'pdf', 'style="color:orange"').' '.$langs->trans("CreateCondensedTable");
         
         $this->resprints = '<option value="CREATE_CONDENSED_ORDERS" data-html="'. dol_escape_htmltag($label) .'"> '. $label .'</option>';
-        $this->resprints.= '<option value="CREATE_CONDENSED_WIDMANN" data-html="'. dol_escape_htmltag($label_wid) .'"> '. $label_wid .'</option>';
+        // $this->resprints.= '<option value="CREATE_CONDENSED_WIDMANN" data-html="'. dol_escape_htmltag($label_wid) .'"> '. $label_wid .'</option>';
         if (getDolGlobalInt('CONDENSEDORDERS_TABLE')){
             $this->resprints.= '<option value="CREATE_CONDENSED_TABLE" data-html="'. dol_escape_htmltag($label_table) .'"> '. $label_table .'</option>';
         }
