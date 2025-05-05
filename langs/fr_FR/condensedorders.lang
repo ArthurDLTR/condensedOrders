@@ -18,16 +18,16 @@
 #
 
 # Module label 'ModuleCondensedOrdersName'
-ModuleCondensedOrdersName = CondensedOrders
+ModuleCondensedOrdersName = Préparation de commandes
 # Module description 'ModuleCondensedOrdersDesc'
-ModuleCondensedOrdersDesc = CondensedOrders description
+ModuleCondensedOrdersDesc = Module de préparation de commande simplifiée
 
 #
 # Admin page
 #
-CondensedOrdersSetup = CondensedOrders setup
+CondensedOrdersSetup = Paramètres du module de préparation de commande
 Settings = Paramètres
-CondensedOrdersSetupPage = CondensedOrders setup page
+CondensedOrdersSetupPage = Page de paramétrages
 NewSection= Nouvelle Section
 CONDENSEDORDERS_MYPARAM1 = My param 1
 CONDENSEDORDERS_MYPARAM1Tooltip = My param 1 tooltip
@@ -40,7 +40,7 @@ CONDENSEDORDERS_ADDON = Activer le pdf pour le module
 #
 About = A propos
 CondensedOrdersAbout = A propos de CondensedOrders
-CondensedOrdersAboutPage = CondensedOrders about page
+CondensedOrdersAboutPage = Page d'informations
 
 #
 # Settings page
