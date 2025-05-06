@@ -131,6 +131,7 @@ $formSetup->newItem('CONDENSEDORDERS_TABLE')->setAsYesNo();
 $formSetup->newItem('CONDENSEDORDERS_LOCATION')->setAsYesNo();
 $formSetup->newItem('CONDENSEDORDERS_WEIGHT')->setAsYesNo();
 $formSetup->newItem('CONDENSEDORDERS_TAG')->setAsYesNo();
+$formSetup->newItem('CONDENSEDORDERS_WIDMANN_PICTURE')->setAsYesNo();
 /*
 // Setup conf for a selection of an email template of type thirdparty
 $formSetup->newItem('CONDENSEDORDERS_MYPARAM6')->setAsEmailTemplate('thirdparty');

@@ -125,6 +125,63 @@ class pdf_widmann extends ModelePdfExpedition
 
 		$nblines = count($object->lines);
 
+		// Loop on each lines to detect if there is at least one image to show
+		$realpatharray = array();
+		$this->atleastonephoto = false;
+		if (getDolGlobalInt('CONDENSEDORDERS_WIDMANN_PICTURE')) {
+			$objphoto = new Product($this->db);
+			$i = 0;
+			foreach ($object->lines as $key => $line) {
+				if (empty($line['fk_product'])) {
+					continue;
+				}
+
+				$objphoto->fetch($line['fk_product']);
+				//var_dump($objphoto->ref);exit;
+				if (getDolGlobalInt('PRODUCT_USE_OLD_PATH_FOR_PHOTO')) {
+					$pdir[0] = get_exdir($objphoto->id, 2, 0, 0, $objphoto, 'product').$objphoto->id."/photos/";
+					$pdir[1] = get_exdir(0, 0, 0, 0, $objphoto, 'product').dol_sanitizeFileName($objphoto->ref).'/';
+				} else {
+					$pdir[0] = get_exdir(0, 0, 0, 0, $objphoto, 'product'); // default
+					$pdir[1] = get_exdir($objphoto->id, 2, 0, 0, $objphoto, 'product').$objphoto->id."/photos/"; // alternative
+				}
+
+				$arephoto = false;
+				foreach ($pdir as $midir) {
+					if (!$arephoto) {
+						if ($conf->entity != $objphoto->entity) {
+							$dir = $conf->product->multidir_output[$objphoto->entity].'/'.$midir; //Check repertories of current entities
+						} else {
+							$dir = $conf->product->dir_output.'/'.$midir; //Check repertory of the current product
+						}
+
+						foreach ($objphoto->liste_photos($dir, 1) as $key => $obj) {
+							if (!getDolGlobalInt('CAT_HIGH_QUALITY_IMAGES')) {		// If CAT_HIGH_QUALITY_IMAGES not defined, we use thumb if defined and then original photo
+								if ($obj['photo_vignette']) {
+									$filename = $obj['photo_vignette'];
+								} else {
+									$filename = $obj['photo'];
+								}
+							} else {
+								$filename = $obj['photo'];
+							}
+
+							$realpath = $dir.$filename;
+							$arephoto = true;
+							$this->atleastonephoto = true;
+						}
+					}
+				}
+
+				if ($realpath && $arephoto) {
+					$realpatharray[$i] = $realpath;
+				}
+				$i = $i + 1;
+			}
+		}
+
+		var_dump($realpatharray);
+
 		switch($object->context){
 			case 'orderlist':
 				if($conf->commande->multidir_output[$conf->entity]){
@@ -514,6 +571,12 @@ class pdf_widmann extends ModelePdfExpedition
 					$posYAfterDescription = 0;
 					$heightforsignature = 0;
 
+					// Define sizes of pictures
+					$imglinesize = array(
+						'width' => 25,
+						'height' => 25
+					);
+
 					if ($this->getColumnStatus('photo')) {
 						// We start with Photo of product line
 						if (isset($imglinesize['width']) && isset($imglinesize['height']) && ($curY + $imglinesize['height']) > ($this->page_hauteur - ($heightforfooter + $heightforfreetext + $heightforsignature + $heightforinfotot))) {	// If photo too high, we moved completely on new page
@@ -535,11 +598,11 @@ class pdf_widmann extends ModelePdfExpedition
 						}
 
 
-						if (!empty($this->cols['photo']) && isset($imglinesize['width']) && isset($imglinesize['height'])) {
-							$pdf->Image($realpatharray[$i], $this->getColumnContentXStart('photo'), $curY + 1, $imglinesize['width'], $imglinesize['height'], '', '', '', 2, 300); // Use 300 dpi
-							// $pdf->Image does not increase value return by getY, so we save it manually
-							$posYAfterImage = $curY + $imglinesize['height'];
-						}
+						// if (!empty($this->cols['photo']) && isset($imglinesize['width']) && isset($imglinesize['height'])) {
+						// 	$pdf->Image($realpatharray[$i], $this->getColumnContentXStart('photo'), $curY + 1, $imglinesize['width'], $imglinesize['height'], '', '', '', 2, 300); // Use 300 dpi
+						// 	// $pdf->Image does not increase value return by getY, so we save it manually
+						// 	$posYAfterImage = $curY + $imglinesize['height'];
+						// }
 					}
 
 					// Description of product line
@@ -1089,7 +1152,7 @@ class pdf_widmann extends ModelePdfExpedition
 		// Product reference
 		$this->cols['ref'] = array(
 			'rank' => $rank,
-			'width' => 60, // in mm
+			'width' => 50, // in mm
 			'status' => true,
 			'title' => array(
 				'textkey' => 'Prod. ref'
@@ -1099,34 +1162,77 @@ class pdf_widmann extends ModelePdfExpedition
 			),
 			'border-left' => true, // add left line separator
 		);
+		if (getDolGlobalInt('CONDENSEDORDERS_WIDMANN_PICTURE')) {
+			$rank = $rank + 1;
+			$this->cols['photo'] = array(
+				'rank' => $rank,
+				'width' => 30,
+				'status' => true,
+				'title' => array(
+					'textkey' => 'Photo'
+				),
+				'content' => array(
+					'align' => 'L',
+				),
+				'border-left' => true,
+			);
 
-		$rank = $rank + 1;
-		$this->cols['qte_det'] = array(
-			'rank' => $rank,
-			'width' => 110, // in mm
-			'status' => true,
-			'title' => array(
-				'textkey' => 'Qté. détails'
-			),
-			'content' => array(
-				'align' => 'L',
-			),
-			'border-left' => true, // remove left line separator
-		);
+			$rank = $rank + 1;
+			$this->cols['qte_det'] = array(
+				'rank' => $rank,
+				'width' => 95, // in mm
+				'status' => true,
+				'title' => array(
+					'textkey' => 'Qté. détails'
+				),
+				'content' => array(
+					'align' => 'L',
+				),
+				'border-left' => true, // remove left line separator
+			);
 
-		$rank = $rank + 1;
-		$this->cols['qte_tot'] = array(
-			'rank' => $rank,
-			'width' => 20, // in mm
-			'status' => true,
-			'title' => array(
-				'textkey' => 'Qté. tot'
-			),
-			'content' => array(
-				'align' => 'C',
-			),
-			'border-left' => true, // remove left line separator
-		);
+			$rank = $rank + 1;
+			$this->cols['qte_tot'] = array(
+				'rank' => $rank,
+				'width' => 15, // in mm
+				'status' => true,
+				'title' => array(
+					'textkey' => 'Qté. tot'
+				),
+				'content' => array(
+					'align' => 'C',
+				),
+				'border-left' => true, // remove left line separator
+			);
+		} else {
+			$rank = $rank + 1;
+			$this->cols['qte_det'] = array(
+				'rank' => $rank,
+				'width' => 115, // in mm
+				'status' => true,
+				'title' => array(
+					'textkey' => 'Qté. détails'
+				),
+				'content' => array(
+					'align' => 'L',
+				),
+				'border-left' => true, // remove left line separator
+			);
+
+			$rank = $rank + 1;
+			$this->cols['qte_tot'] = array(
+				'rank' => $rank,
+				'width' => 25, // in mm
+				'status' => true,
+				'title' => array(
+					'textkey' => 'Qté. tot'
+				),
+				'content' => array(
+					'align' => 'C',
+				),
+				'border-left' => true, // remove left line separator
+			);
+		}
 
 		$parameters = array(
 			'object' => $object,
