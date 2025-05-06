@@ -123,8 +123,6 @@ class pdf_widmann extends ModelePdfExpedition
 			$outputlangsbis->loadLangs(array("main", "bills", "orders", "products", "dict", "companies", "propal", "deliveries", "sendings", "productbatch"));
 		}
 
-		$nblines = count($object->lines);
-
 		// Loop on each lines to detect if there is at least one image to show
 		$realpatharray = array();
 		$this->atleastonephoto = false;
@@ -132,12 +130,11 @@ class pdf_widmann extends ModelePdfExpedition
 			$objphoto = new Product($this->db);
 			$i = 0;
 			foreach ($object->lines as $key => $line) {
-				if (empty($line['fk_product'])) {
+				if (empty($line['prod_id'])) {
 					continue;
 				}
-
-				$objphoto->fetch($line['fk_product']);
-				//var_dump($objphoto->ref);exit;
+				
+				$objphoto->fetch($line['prod_id']);
 				if (getDolGlobalInt('PRODUCT_USE_OLD_PATH_FOR_PHOTO')) {
 					$pdir[0] = get_exdir($objphoto->id, 2, 0, 0, $objphoto, 'product').$objphoto->id."/photos/";
 					$pdir[1] = get_exdir(0, 0, 0, 0, $objphoto, 'product').dol_sanitizeFileName($objphoto->ref).'/';
@@ -145,7 +142,7 @@ class pdf_widmann extends ModelePdfExpedition
 					$pdir[0] = get_exdir(0, 0, 0, 0, $objphoto, 'product'); // default
 					$pdir[1] = get_exdir($objphoto->id, 2, 0, 0, $objphoto, 'product').$objphoto->id."/photos/"; // alternative
 				}
-
+				
 				$arephoto = false;
 				foreach ($pdir as $midir) {
 					if (!$arephoto) {
@@ -172,15 +169,13 @@ class pdf_widmann extends ModelePdfExpedition
 						}
 					}
 				}
-
+				
 				if ($realpath && $arephoto) {
 					$realpatharray[$i] = $realpath;
 				}
 				$i = $i + 1;
 			}
 		}
-
-		var_dump($realpatharray);
 
 		switch($object->context){
 			case 'orderlist':
@@ -597,12 +592,11 @@ class pdf_widmann extends ModelePdfExpedition
 							}
 						}
 
-
-						// if (!empty($this->cols['photo']) && isset($imglinesize['width']) && isset($imglinesize['height'])) {
-						// 	$pdf->Image($realpatharray[$i], $this->getColumnContentXStart('photo'), $curY + 1, $imglinesize['width'], $imglinesize['height'], '', '', '', 2, 300); // Use 300 dpi
-						// 	// $pdf->Image does not increase value return by getY, so we save it manually
-						// 	$posYAfterImage = $curY + $imglinesize['height'];
-						// }
+						if (!empty($this->cols['photo']) && isset($imglinesize['width']) && isset($imglinesize['height']) && !empty($realpatharray[$i])) {
+							$pdf->Image($realpatharray[$i], $this->getColumnContentXStart('photo'), $curY + 1, $imglinesize['width'], $imglinesize['height'], '', '', '', 2, 300); // Use 300 dpi
+							// $pdf->Image does not increase value return by getY, so we save it manually
+							$posYAfterImage = $curY + $imglinesize['height'];
+						}
 					}
 
 					// Description of product line
@@ -741,7 +735,7 @@ class pdf_widmann extends ModelePdfExpedition
 						}
 					}
 
-                    $i+= 1;
+                    $i = $i + 1;
                 }
 
 				// Show square
@@ -1166,13 +1160,13 @@ class pdf_widmann extends ModelePdfExpedition
 			$rank = $rank + 1;
 			$this->cols['photo'] = array(
 				'rank' => $rank,
-				'width' => 30,
+				'width' => 25,
 				'status' => true,
 				'title' => array(
 					'textkey' => 'Photo'
 				),
 				'content' => array(
-					'align' => 'L',
+					'align' => 'C',
 				),
 				'border-left' => true,
 			);
@@ -1180,7 +1174,7 @@ class pdf_widmann extends ModelePdfExpedition
 			$rank = $rank + 1;
 			$this->cols['qte_det'] = array(
 				'rank' => $rank,
-				'width' => 95, // in mm
+				'width' => 100, // in mm
 				'status' => true,
 				'title' => array(
 					'textkey' => 'Qté. détails'
