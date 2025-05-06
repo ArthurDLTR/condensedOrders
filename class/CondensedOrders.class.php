@@ -223,10 +223,10 @@ class CondensedOrders extends CommonObject {
 		$result = $this->db->query($sql);
 		if ($result){
 			$obj = $this->db->fetch_object($result);
+			return $obj->tag;
 		} else {
 			$this->db->error();
 		}
-
-		return $obj->tag;
+		return '';
 	}
 }
