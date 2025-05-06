@@ -286,7 +286,7 @@ class pdf_widmann extends ModelePdfExpedition
 				$pdf->MultiCell(0, 3, ''); // Set interline to 3
 				$pdf->SetTextColor(0, 0, 0);
                 $tab_top = $this->marge_haute; // 90 if pagehead active line 232	// position of top tab
-				$tab_top_newpage = (!getDolGlobalInt('MAIN_PDF_DONOTREPEAT_HEAD') ? 42 + $top_shift : 10);
+				$tab_top_newpage = $this->marge_haute;
                 
 				$tab_height = $this->page_hauteur - $tab_top - $heightforfooter - $heightforfreetext;
                 
@@ -390,9 +390,9 @@ class pdf_widmann extends ModelePdfExpedition
 								if (!empty($tplidx)) {
 									$pdf->useTemplate($tplidx);
 								}
-								if (!getDolGlobalInt('MAIN_PDF_DONOTREPEAT_HEAD')) {
-									$this->_pagehead($pdf, $object, 0, $outputlangs);
-								}
+								// if (!getDolGlobalInt('MAIN_PDF_DONOTREPEAT_HEAD')) {
+								 	// $this->_pagehead($pdf, $object, 0, $outputlangs);
+								// }
 								$this->_pagefoot($pdf,$object,$outputlangs,1);
 								$pdf->setTopMargin($tab_top_newpage);
 								// The only function to edit the bottom margin of current page to set it.
@@ -461,7 +461,7 @@ class pdf_widmann extends ModelePdfExpedition
 								$pdf->useTemplate($tplidx);
 							}
 							if (!getDolGlobalInt('MAIN_PDF_DONOTREPEAT_HEAD')) {
-								$this->_pagehead($pdf, $object, 0, $outputlangs);
+								// $this->_pagehead($pdf, $object, 0, $outputlangs);
 							}
 							$height_note = $posyafter - $tab_top_newpage;
 							$pdf->Rect($this->marge_gauche, $tab_top_newpage - 1, $tab_width, $height_note + 1);
@@ -487,7 +487,7 @@ class pdf_widmann extends ModelePdfExpedition
 									$pdf->useTemplate($tplidx);
 								}
 								if (!getDolGlobalInt('MAIN_PDF_DONOTREPEAT_HEAD')) {
-									$this->_pagehead($pdf, $object, 0, $outputlangs);
+									//$this->_pagehead($pdf, $object, 0, $outputlangs);
 								}
 
 								$posyafter = $tab_top_newpage;
@@ -710,9 +710,9 @@ class pdf_widmann extends ModelePdfExpedition
 						$pagenb++;
 						$pdf->setPage($pagenb);
 						$pdf->setPageOrientation('', 1, 0); // The only function to edit the bottom margin of current page to set it.
-						if (!getDolGlobalInt('MAIN_PDF_DONOTREPEAT_HEAD')) {
-							$this->_pagehead($pdf, $object, 0, $outputlangs);
-						}
+						// if (!getDolGlobalInt('MAIN_PDF_DONOTREPEAT_HEAD')) {
+							// $this->_pagehead($pdf, $object, 0, $outputlangs);
+						// }
 						if (!empty($tplidx)) {
 							$pdf->useTemplate($tplidx);
 						}
@@ -730,9 +730,9 @@ class pdf_widmann extends ModelePdfExpedition
 							$pdf->useTemplate($tplidx);
 						}
 						$pagenb++;
-						if (!getDolGlobalInt('MAIN_PDF_DONOTREPEAT_HEAD')) {
-							$this->_pagehead($pdf, $object, 0, $outputlangs);
-						}
+						// if (!getDolGlobalInt('MAIN_PDF_DONOTREPEAT_HEAD')) {
+							//$this->_pagehead($pdf, $object, 0, $outputlangs);
+						// }
 					}
 
                     $i = $i + 1;
@@ -930,7 +930,7 @@ class pdf_widmann extends ModelePdfExpedition
 		$origin = $object->origin;
 		$origin_id = $object->origin_id;
 
-		$object->fetch_origin();
+		// $object->fetch_origin();
 
 		// TODO move to external function
 		if (isModEnabled($origin)) {     // commonly $origin='commande'
@@ -1160,7 +1160,7 @@ class pdf_widmann extends ModelePdfExpedition
 			$rank = $rank + 1;
 			$this->cols['photo'] = array(
 				'rank' => $rank,
-				'width' => 25,
+				'width' => 27,
 				'status' => true,
 				'title' => array(
 					'textkey' => 'Photo'
@@ -1174,7 +1174,7 @@ class pdf_widmann extends ModelePdfExpedition
 			$rank = $rank + 1;
 			$this->cols['qte_det'] = array(
 				'rank' => $rank,
-				'width' => 100, // in mm
+				'width' => 98, // in mm
 				'status' => true,
 				'title' => array(
 					'textkey' => 'Qté. détails'

@@ -1,10 +1,13 @@
 # CHANGELOG CONDENSEDORDERS FOR [DOLIBARR ERP CRM](https://www.dolibarr.org)
 
+## Version 1.2
+Ajout des pĥotos dans le modèle de PDF Widmann, paramétrable.
+
 ## Version 1.1
 Ajout d'un hook pour afficher le stock d'un produit dans son info-bulle.
 
 ## Version 1.0
-Ajout du tri des produits en utilisant les tags, défini comme tri par défaut.
+Ajout du tri des produits en utilisant les tags ou l'ordre alphabétique, le tri par ordre alphabétique défini comme tri par défaut si aucun autre tri n'est choisi.
 
 ## Version 0.9
 Ajout de la possibilité de trier les produits selon leur volume, à activer dans les paramètres.
