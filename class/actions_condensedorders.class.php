@@ -234,13 +234,13 @@ class ActionsCondensedOrders {
                                     'qte_det' => array(),
                                     'qte_tot' => $arrayLineExpe[$line->fk_product]['qty']
                                 );
-                                if (getDolGlobalInt('CONDENSEDORDERS_LOCATION')){
+                                if (getDolGlobalString('CONDENSEDORDERS_SORT') == 'location'){
                                     $arrayLineProduct[$line->fk_product]['qte_det'][0] = array('soc' => $expe->socid, 'dist' => $obj_dist->getDistance($expe->socid), 'qte_expe' => $line->qty, 'ref_client' => $expe->ref_client);
                                 } else {
                                     $arrayLineProduct[$line->fk_product]['qte_det'][0] = array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_client' => $expe->ref_client);
                                 }
                             } else {
-                                if (getDolGlobalInt('CONDENSEDORDERS_LOCATION')){
+                                if (getDolGlobalString('CONDENSEDORDERS_SORT') == 'location'){
                                     array_push($arrayLineProduct[$line->fk_product]['qte_det'], array('soc' => $expe->socid, 'dist' => $obj_dist->getDistance($expe->socid), 'qte_expe' => $line->qty, 'ref_client' => $expe->ref_client));
                                     // $arrayLineProduct[$line->fk_product]['qte_det'][$i] = array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_expe' => $expe->ref);
                                 } else {
@@ -252,15 +252,15 @@ class ActionsCondensedOrders {
                 }
 
                 // Sort the qte_det array inside each line of arrayLineProduct
-                if(getDolGlobalInt('CONDENSEDORDERS_LOCATION')){
+                if(getDolGlobalString('CONDENSEDORDERS_SORT') == 'location'){
                     foreach ($arrayLineProduct as $key => $line){
                         usort($line['qte_det'], function ($a, $b) { return !strcmp($a['dist'], $b['dist']); });
                         // var_dump($line['qte_det']);
                         // print '<br>';
                     } 
-                } else if(getDolGlobalInt('CONDENSEDORDERS_WEIGHT')){ // Sort the products' array depending on weight
+                } else if(getDolGlobalString('CONDENSEDORDERS_SORT') == 'weight'){ // Sort the products' array depending on weight
                     usort($arrayLineProduct, function($a, $b) {return $a['weight'] < $b['weight'];});
-                } else if (getDolGlobalInt('CONDENSEDORDERS_TAG')){
+                } else if (getDolGlobalString('CONDENSEDORDERS_SORT') == 'tag'){
                     usort($arrayLineProduct, function($a, $b) {return $a['tag'] < $b['tag'];});
                 } else { // Or depending on the alphabetical order
                     usort($arrayLineProduct, function($a, $b) {return strcmp($a['ref'], $b['ref']);});
@@ -386,13 +386,13 @@ class ActionsCondensedOrders {
                                     'qte_det' => array(),
                                     'qte_tot' => $arrayLineExpe[$line->fk_product]['qty']
                                 );
-                                if (getDolGlobalInt('CONDENSEDORDERS_LOCATION')){
+                                if (getDolGlobalString('CONDENSEDORDERS_SORT') == 'location'){
                                     $arrayLineProduct[$line->fk_product]['qte_det'][0] = array('soc' => $expe->socid, 'dist' => $obj_dist->getDistance($expe->socid), 'qte_expe' => $line->qty, 'ref_client' => $expe->ref_client);
                                 } else {
                                     $arrayLineProduct[$line->fk_product]['qte_det'][0] = array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_client' => $expe->ref_client);
                                 }
                             } else {
-                                if (getDolGlobalInt('CONDENSEDORDERS_LOCATION')){
+                                if (getDolGlobalString('CONDENSEDORDERS_SORT') == 'location'){
                                     array_push($arrayLineProduct[$line->fk_product]['qte_det'], array('soc' => $expe->socid, 'dist' => $obj_dist->getDistance($expe->socid), 'qte_expe' => $line->qty, 'ref_client' => $expe->ref_client));
                                     // $arrayLineProduct[$line->fk_product]['qte_det'][$i] = array('soc' => $expe->socid, 'qte_expe' => $line->qty, 'ref_expe' => $expe->ref);
                                 } else {
@@ -405,14 +405,14 @@ class ActionsCondensedOrders {
             }
             
             // Sort the qte_det array inside each line of arrayLineProduct
-            if (getDolGlobalInt('CONDENSEDORDERS_LOCATION')){
+            if (getDolGlobalString('CONDENSEDORDERS_SORT') == 'location'){
                 foreach ($arrayLineProduct as $key => $line){
                     usort($line['qte_det'], function ($a, $b) { return strcmp($a['dist'], $b['dist']); });
                     // var_dump($line['qte_det']);
                 }
-            } else if(getDolGlobalInt('CONDENSEDORDERS_WEIGHT')){ // Sort the products' array depending on weight
+            } else if(getDolGlobalString('CONDENSEDORDERS_SORT') == 'weight'){ // Sort the products' array depending on weight
                 usort($arrayLineProduct, function($a, $b) {return $a['weight'] < $b['weight'];});
-            } else if (getDolGlobalInt('CONDENSEDORDERS_TAG')){
+            } else if (getDolGlobalString('CONDENSEDORDERS_SORT') == 'tag'){
                 usort($arrayLineProduct, function($a, $b) {return $a['tag'] < $b['tag'];});
             } else { // Or depending on the alphabetical order
                 usort($arrayLineProduct, function($a, $b) {return strcmp($a['ref'], $b['ref']);});

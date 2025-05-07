@@ -126,12 +126,23 @@ $item = $formSetup->newItem('CONDENSEDORDERS_MYPARAM4');
 $item->setAsThirdpartyType();
 */
 // Setup conf for a selection of a boolean
-$formSetup->newItem("CONDENSEDORDERS_DESCRIPTION")->setAsTitle();
 $formSetup->newItem('CONDENSEDORDERS_TABLE')->setAsYesNo();
-$formSetup->newItem('CONDENSEDORDERS_LOCATION')->setAsYesNo();
-$formSetup->newItem('CONDENSEDORDERS_WEIGHT')->setAsYesNo();
-$formSetup->newItem('CONDENSEDORDERS_TAG')->setAsYesNo();
 $formSetup->newItem('CONDENSEDORDERS_WIDMANN_PICTURE')->setAsYesNo();
+// $formSetup->newItem('CONDENSEDORDERS_LOCATION')->setAsYesNo();
+// $formSetup->newItem('CONDENSEDORDERS_WEIGHT')->setAsYesNo();
+// $formSetup->newItem('CONDENSEDORDERS_TAG')->setAsYesNo();
+
+/**
+ * Setup to choose the sort technic
+ */
+$sortChoices = array(
+	'default' => $langs->trans('CONDENSEDORDERS_DEFAULT'),
+	'tag' => $langs->trans('CONDENSEDORDERS_TAG'),
+	'weight' => $langs->trans('CONDENSEDORDERS_WEIGHT'),
+	'location' => $langs->trans('CONDENSEDORDERS_LOCATION'),
+);
+$formSetup->newItem('CONDENSEDORDERS_SORT')->setAsSelect($sortChoices);
+
 /*
 // Setup conf for a selection of an email template of type thirdparty
 $formSetup->newItem('CONDENSEDORDERS_MYPARAM6')->setAsEmailTemplate('thirdparty');

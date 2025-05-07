@@ -313,194 +313,6 @@ class pdf_widmann extends ModelePdfExpedition
 					}
 				}
 
-				// Public note and Tracking code
-				$notetoshow = empty($object->note_public) ? '' : $object->note_public;
-
-				// Extrafields in note
-				$extranote = $this->getExtrafieldsInHtml($object, $outputlangs);
-				if (!empty($extranote)) {
-					$notetoshow = dol_concatdesc($notetoshow, $extranote);
-				}
-
-                // Section for notes 
-                if (!empty($notetoshow) || !empty($object->tracking_number)) {
-					$tab_top -= 2;
-					$tab_topbeforetrackingnumber = $tab_top;
-
-					// Tracking number
-					if (!empty($object->tracking_number)) {
-						$height_trackingnumber = 4;
-
-						$pdf->SetFont('', 'B', $default_font_size - 2);
-						$pdf->writeHTMLCell(60, $height_trackingnumber, $this->posxdesc - 1, $tab_top - 1, $outputlangs->transnoentities("TrackingNumber") . " : " . $object->tracking_number, 0, 1, false, true, 'L');
-						$tab_top_alt = $pdf->GetY();
-
-						$object->getUrlTrackingStatus($object->tracking_number);
-						if (!empty($object->tracking_url)) {
-							if ($object->shipping_method_id > 0) {
-								// Get code using getLabelFromKey
-								$code = $outputlangs->getLabelFromKey($this->db, $object->shipping_method_id, 'c_shipment_mode', 'rowid', 'code');
-								$label = '';
-								if ($object->tracking_url != $object->tracking_number) {
-									$label .= $outputlangs->trans("LinkToTrackYourPackage")."<br>";
-								}
-								$label .= $outputlangs->trans("SendingMethod").": ".$outputlangs->trans("SendingMethod".strtoupper($code));
-								//var_dump($object->tracking_url != $object->tracking_number);exit;
-								if ($object->tracking_url != $object->tracking_number) {
-									$label .= " : ";
-									$label .= $object->tracking_url;
-								}
-
-								$height_trackingnumber += 4;
-								$pdf->SetFont('', 'B', $default_font_size - 2);
-								$pdf->writeHTMLCell(60, $height_trackingnumber, $this->posxdesc - 1, $tab_top_alt, $label, 0, 1, false, true, 'L');
-							}
-						}
-						$tab_top = $pdf->GetY();
-					}
-
-					// Notes
-					$pagenb = $pdf->getPage();
-					if (!empty($notetoshow) || !empty($object->tracking_number)) {
-						$tab_top -= 1;
-
-						$tab_width = $this->page_largeur - $this->marge_gauche - $this->marge_droite;
-						$pageposbeforenote = $pagenb;
-
-						$substitutionarray = pdf_getSubstitutionArray($outputlangs, null, $object);
-						complete_substitutions_array($substitutionarray, $outputlangs, $object);
-						$notetoshow = make_substitutions($notetoshow, $substitutionarray, $outputlangs);
-						$notetoshow = convertBackOfficeMediasLinksToPublicLinks($notetoshow);
-
-						$pdf->startTransaction();
-
-						$pdf->SetFont('', '', $default_font_size - 1);
-						$pdf->writeHTMLCell(190, 3, $this->posxdesc - 1, $tab_top, dol_htmlentitiesbr($notetoshow), 0, 1);
-						// Description
-						$pageposafternote = $pdf->getPage();
-						$posyafter = $pdf->GetY();
-
-						if ($pageposafternote > $pageposbeforenote) {
-							$pdf->rollbackTransaction(true);
-
-							// prepare pages to receive notes
-							while ($pagenb < $pageposafternote) {
-								$pdf->AddPage();
-								$pagenb++;
-								if (!empty($tplidx)) {
-									$pdf->useTemplate($tplidx);
-								}
-								// if (!getDolGlobalInt('MAIN_PDF_DONOTREPEAT_HEAD')) {
-								 	// $this->_pagehead($pdf, $object, 0, $outputlangs);
-								// }
-								$this->_pagefoot($pdf,$object,$outputlangs,1);
-								$pdf->setTopMargin($tab_top_newpage);
-								// The only function to edit the bottom margin of current page to set it.
-								$pdf->setPageOrientation('', 1, $heightforfooter + $heightforfreetext);
-							}
-
-							// back to start
-							$pdf->setPage($pageposbeforenote);
-							$pdf->setPageOrientation('', 1, $heightforfooter + $heightforfreetext);
-							$pdf->SetFont('', '', $default_font_size - 1);
-							$pdf->writeHTMLCell(190, 3, $this->posxdesc - 1, $tab_top, dol_htmlentitiesbr($notetoshow), 0, 1);
-							$pageposafternote = $pdf->getPage();
-
-							$posyafter = $pdf->GetY();
-
-							/*
-							if ($posyafter > ($this->page_hauteur - ($heightforfooter + $heightforfreetext + 20))) {	// There is no space left for total+free text
-								$pdf->AddPage('', '', true);
-								$pagenb++;
-								$pageposafternote++;
-								$pdf->setPage($pageposafternote);
-								$pdf->setTopMargin($tab_top_newpage);
-								// The only function to edit the bottom margin of current page to set it.
-								$pdf->setPageOrientation('', 1, $heightforfooter + $heightforfreetext);
-								//$posyafter = $tab_top_newpage;
-							}
-								*/
-
-
-							// apply note frame to previous pages
-							$i = $pageposbeforenote;
-							while ($i < $pageposafternote) {
-								$pdf->setPage($i);
-
-
-								$pdf->SetDrawColor(128, 128, 128);
-								// Draw note frame
-								if ($i > $pageposbeforenote) {
-									if (empty($height_trackingnumber)) {
-										$height_note = $this->page_hauteur - ($tab_top_newpage + $heightforfooter);
-									} else {
-										$height_note = $this->page_hauteur - ($tab_top_newpage + $heightforfooter) + $height_trackingnumber + 1;
-										$tab_top_newpage = $tab_topbeforetrackingnumber;
-									}
-									$pdf->Rect($this->marge_gauche, $tab_top_newpage - 1, $tab_width, $height_note + 2);
-								} else {
-									if (empty($height_trackingnumber)) {
-										$height_note = $this->page_hauteur - ($tab_top + $heightforfooter);
-									} else {
-										$height_note = $this->page_hauteur - ($tab_top + $heightforfooter) + $height_trackingnumber + 1;
-										$tab_top = $tab_topbeforetrackingnumber;
-									}
-									$pdf->Rect($this->marge_gauche, $tab_top - 1, $tab_width, $height_note + 2);
-								}
-
-								// Add footer
-								$pdf->setPageOrientation('', 1, 0); // The only function to edit the bottom margin of current page to set it.
-								$this->_pagefoot($pdf, $object, $outputlangs, 1);
-
-								$i++;
-							}
-
-							// apply note frame to last page
-							$pdf->setPage($pageposafternote);
-							if (!empty($tplidx)) {
-								$pdf->useTemplate($tplidx);
-							}
-							if (!getDolGlobalInt('MAIN_PDF_DONOTREPEAT_HEAD')) {
-								// $this->_pagehead($pdf, $object, 0, $outputlangs);
-							}
-							$height_note = $posyafter - $tab_top_newpage;
-							$pdf->Rect($this->marge_gauche, $tab_top_newpage - 1, $tab_width, $height_note + 1);
-						} else { // No pagebreak
-							$pdf->commitTransaction();
-							$posyafter = $pdf->GetY();
-							if (empty($height_trackingnumber)) {
-								$height_note = $posyafter - $tab_top + 1;
-							} else {
-								$height_note = $posyafter - $tab_top + $height_trackingnumber + 1;
-								$tab_top = $tab_topbeforetrackingnumber;
-							}
-							$pdf->Rect($this->marge_gauche, $tab_top - 1, $tab_width, $height_note + 2);
-
-
-							if ($posyafter > ($this->page_hauteur - ($heightforfooter + $heightforfreetext + 20))) {
-								// not enough space, need to add page
-								$pdf->AddPage('', '', true);
-								$pagenb++;
-								$pageposafternote++;
-								$pdf->setPage($pageposafternote);
-								if (!empty($tplidx)) {
-									$pdf->useTemplate($tplidx);
-								}
-								if (!getDolGlobalInt('MAIN_PDF_DONOTREPEAT_HEAD')) {
-									//$this->_pagehead($pdf, $object, 0, $outputlangs);
-								}
-
-								$posyafter = $tab_top_newpage;
-							}
-						}
-
-						$tab_height = $tab_height - $height_note;
-						$tab_top = $posyafter + 6;
-					} else {
-						$height_note = 0;
-					}
-				}
-
                 // Show barcode
 				$height_barcode = 0;
 				//$pdf->Rect($this->marge_gauche, $this->marge_haute, $this->page_largeur-$this->marge_gauche-$this->marge_droite, 30);
@@ -557,7 +369,7 @@ class pdf_widmann extends ModelePdfExpedition
 					$pdf->SetFont('', '', $default_font_size - 1); // Into loop to work with multipage
 					$pdf->SetTextColor(0, 0, 0);
 
-                    $pdf->setTopMargin($tab_top_newpage);
+                    $pdf->setTopMargin($this->marge_haute);
 					$pdf->setPageOrientation('', 1, $heightforfooter + $heightforfreetext + $heightforinfotot); // The only function to edit the bottom margin of current page to set it.
 					$pageposbefore = $pdf->getPage();
 
@@ -571,7 +383,8 @@ class pdf_widmann extends ModelePdfExpedition
 						'width' => 25,
 						'height' => 25
 					);
-
+					
+					
 					if ($this->getColumnStatus('photo')) {
 						// We start with Photo of product line
 						if (isset($imglinesize['width']) && isset($imglinesize['height']) && ($curY + $imglinesize['height']) > ($this->page_hauteur - ($heightforfooter + $heightforfreetext + $heightforsignature + $heightforinfotot))) {	// If photo too high, we moved completely on new page
@@ -591,55 +404,26 @@ class pdf_widmann extends ModelePdfExpedition
 								$showpricebeforepagebreak = 0;
 							}
 						}
-
+						
 						if (!empty($this->cols['photo']) && isset($imglinesize['width']) && isset($imglinesize['height']) && !empty($realpatharray[$i])) {
 							$pdf->Image($realpatharray[$i], $this->getColumnContentXStart('photo'), $curY + 1, $imglinesize['width'], $imglinesize['height'], '', '', '', 2, 300); // Use 300 dpi
 							// $pdf->Image does not increase value return by getY, so we save it manually
 							$posYAfterImage = $curY + $imglinesize['height'];
 						}
 					}
-
-					// Description of product line
-					if ($this->getColumnStatus('desc')) {
-						$pdf->startTransaction();
-
-						$this->printColDescContent($pdf, $curY, 'desc', $object, $i, $outputlangs, $hideref, $hidedesc);
-
-						$pageposafter = $pdf->getPage();
-						if ($pageposafter > $pageposbefore) {	// There is a pagebreak
-							$pdf->rollbackTransaction(true);
-
-							$this->printColDescContent($pdf, $curY, 'desc', $object, $i, $outputlangs, $hideref, $hidedesc);
-
-							$pageposafter = $pdf->getPage();
-							$posyafter = $pdf->GetY();
-							//var_dump($posyafter); var_dump(($this->page_hauteur - ($heightforfooter+$heightforfreetext+$heightforinfotot))); exit;
-							if ($posyafter > ($this->page_hauteur - ($heightforfooter + $heightforfreetext + $heightforsignature + $heightforinfotot))) {	// There is no space left for total+free text
-								if ($i == ($nblines - 1)) {	// No more lines, and no space left to show total, so we create a new page
-									$pdf->AddPage('', '', true);
-									if (!empty($tplidx)) {
-										$pdf->useTemplate($tplidx);
-									}
-									//if (!getDolGlobalInt('MAIN_PDF_DONOTREPEAT_HEAD')) $this->_pagehead($pdf, $object, 0, $outputlangs);
-									$pdf->setPage($pageposafter + 1);
-								}
-							} else {
-								// We found a page break
-								// Allows data in the first page if description is long enough to break in multiples pages
-								if (getDolGlobalString('MAIN_PDF_DATA_ON_FIRST_PAGE')) {
-									$showpricebeforepagebreak = 1;
-								} else {
-									$showpricebeforepagebreak = 0;
-								}
-							}
-						} else { // No pagebreak
-							$pdf->commitTransaction();
-						}
-						$posYAfterDescription = $pdf->GetY();
+					$y = $pdf->GetY();
+					if($i % 2 == 0 && $i > 7){
+						var_dump($i);
+						var_dump($nexY);
+						var_dump($y);
 					}
-
 					$nexY = max($pdf->GetY(), $posYAfterImage);
 					$pageposafter = $pdf->getPage();
+
+					if($i % 2 == 0 && $i > 7){
+						var_dump($i);
+						var_dump($nexY);
+					}
 
 					$pdf->setPage($pageposbefore);
 					$pdf->setTopMargin($this->marge_haute);
@@ -667,6 +451,7 @@ class pdf_widmann extends ModelePdfExpedition
 						$nexY = max($pdf->GetY(), $nexY);
 					}
 
+					// Load the content of the details for the product concerned and display it in qte_det column
 					$str_det = '';
 					foreach($line['qte_det'] as $key => $det){
 						$str_det.=$det['qte_expe'].' pour ';
@@ -678,17 +463,17 @@ class pdf_widmann extends ModelePdfExpedition
 							$str_det.=$soc->name.' ('.$det['ref_client'].')<br>';
 						}
 					}
-
+					
 					if ($this->getColumnStatus('qte_det')) {
 						$this->printStdColumnContent($pdf, $curY, 'qte_det', $str_det);
 						$nexY = max($pdf->GetY(), $nexY);
 					}
-
+					
 					if ($this->getColumnStatus('qte_tot')) {
 						$this->printStdColumnContent($pdf, $curY, 'qte_tot', (int)$line['qte_tot']);
 						$nexY = max($pdf->GetY(), $nexY);
 					}
-
+					
 					// Add line
 					if (getDolGlobalString('MAIN_PDF_DASH_BETWEEN_LINES') && $i < ($nblines - 1)) {
 						$pdf->setPage($pageposafter);
@@ -717,25 +502,28 @@ class pdf_widmann extends ModelePdfExpedition
 							$pdf->useTemplate($tplidx);
 						}
 					}
-					if (isset($object->lines[$i+1]->pagebreak) && $object->lines[$i+1]->pagebreak) {
-						if ($pagenb == 1) {
-							$this->_tableau($pdf, $tab_top, $this->page_hauteur - $tab_top - $heightforfooter, 0, $outputlangs, 0, 1);
-						} else {
-							$this->_tableau($pdf, $tab_top_newpage, $this->page_hauteur - $tab_top_newpage - $heightforfooter, 0, $outputlangs, 1, 1);
-						}
-						$this->_pagefoot($pdf, $object, $outputlangs, 1);
-						// New page
-						$pdf->AddPage();
-						if (!empty($tplidx)) {
-							$pdf->useTemplate($tplidx);
-						}
-						$pagenb++;
-						// if (!getDolGlobalInt('MAIN_PDF_DONOTREPEAT_HEAD')) {
-							//$this->_pagehead($pdf, $object, 0, $outputlangs);
-						// }
-					}
+					// if (isset($object->lines[$i+1]->pagebreak) && $object->lines[$i+1]->pagebreak && false) {
+					// 	if ($pagenb == 1) {
+					// 		$this->_tableau($pdf, $tab_top, $this->page_hauteur - $tab_top - $heightforfooter, 0, $outputlangs, 0, 1);
+					// 	} else {
+					// 		$this->_tableau($pdf, $tab_top_newpage, $this->page_hauteur - $tab_top_newpage - $heightforfooter, 0, $outputlangs, 1, 1);
+					// 	}
+					// 	$this->_pagefoot($pdf, $object, $outputlangs, 1);
+					// 	// New page
+					// 	$pdf->AddPage();
+					// 	if (!empty($tplidx)) {
+					// 		$pdf->useTemplate($tplidx);
+					// 	}
+					// 	$pagenb++;
+					// 	// if (!getDolGlobalInt('MAIN_PDF_DONOTREPEAT_HEAD')) {
+					// 		//$this->_pagehead($pdf, $object, 0, $outputlangs);
+					// 	// }
+					// }
 
                     $i = $i + 1;
+					
+					// var_dump($nexY);
+					// var_dump($pageposafter);
                 }
 
 				// Show square
