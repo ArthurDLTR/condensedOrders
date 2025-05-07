@@ -31,53 +31,53 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
 class pdf_widmann extends ModelePdfExpedition
 {
     /**
-     * @var DoliDB database of the dolibarr
+	 * @var DoliDB database of the dolibarr
      */
-    public $db;
+	public $db;
     /**
-     * @var int Environment ID when using multicompany module
+	 * @var int Environment ID when using multicompany module
      */
     public $entity;
     /**
-     * @var String model name
+	 * @var String model name
      */
-    public $name;
+	public $name;
     /**
-     * @var String Model description
+	 * @var String Model description
      */
-    public $description;
+	public $description;
     /**
-     * @var int Save the name of generated file as the main doc when generating a doc with this template
+	 * @var int Save the name of generated file as the main doc when generating a doc with this template
      */
-    public $update_main_doc_field;
+	public $update_main_doc_field;
     /**
-     * @var String Document type
+	 * @var String Document type
      */
-    public $type;
+	public $type;
     /**
-     * @var String Dolibarr version of the loaded document
+	 * @var String Dolibarr version of the loaded document
      */
-    public $version = 'dolibarr';
+	public $version = 'dolibarr';
     /**
-     * @var Societe recipient
+	 * @var Societe recipient
      */
-    public $recipient;
+	public $recipient;
     /**
-     * Constructor
-     * @param   DoliDB      $db     Database handler
+	 * Constructor
+	 * @param   DoliDB      $db     Database handler
      */
-    public function __construct($db){
+	public function __construct($db){
         global $langs, $mysoc;
-
+		
         $this->db = $db;
         $this->name = 'widmann'; // Johannes Widmann, inventeur du + et du -
         $this->description = $langs->trans("WIDMANN_PDF_DESCR");
         $this->update_main_doc_field = 1; 
-
+		
         // Dimension page
         $this->type = 'pdf';
         $formatarray = pdf_getFormat();
-
+		
         $this->page_largeur = $formatarray['width'];
 		$this->page_hauteur = $formatarray['height'];
 		$this->format = array($this->page_largeur, $this->page_hauteur);
@@ -86,8 +86,8 @@ class pdf_widmann extends ModelePdfExpedition
 		$this->marge_haute = getDolGlobalInt('MAIN_PDF_MARGIN_TOP', 10); // Valeur à modifier pour changer la marge du haut de chaque page une fois que les problèmes d'affichage sur plusieurs pages seront réglés
 		$this->marge_basse = getDolGlobalInt('MAIN_PDF_MARGIN_BOTTOM', 10);
     }
-
-        /**
+	
+	/**
 	 *	Function to build pdf onto disk
 	 *
 	 *	@param		CondensedOrders	$object			    Object shipping to generate (or id if old method)
@@ -100,10 +100,20 @@ class pdf_widmann extends ModelePdfExpedition
 	 */
 	public function write_file($object, $outputlangs, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0)
     {
-        global $user, $conf, $langs, $hookmanager;
-
+		global $user, $conf, $langs, $hookmanager;
+		
         $object->fetch_thirdparty();
-
+		
+		$print = array(
+			'i' => "Indice : ",
+			'nexY' => "nexY : ",
+			'y' => "y : ",
+			'pos' => "posAfterImage : ",
+			'nb_page' => "Nombre de pages :",
+			'pagepos' => "*position page : ",
+			'fin' => "------------------------------------------- fin pour cet indice -----------------------------------------------",
+		);
+		
 		if (!is_object($outputlangs)) {
 			$outputlangs = $langs;
 		}
@@ -111,10 +121,10 @@ class pdf_widmann extends ModelePdfExpedition
 		if (getDolGlobalString('MAIN_USE_FPDF')) {
 			$outputlangs->charset_output = 'ISO-8859-1';
 		}
-
+		
         // Load traductions files required by page
 		$outputlangs->loadLangs(array("main", "bills", "orders", "products", "dict", "companies", "other", "propal", "deliveries", "sendings", "productbatch"));
-
+		
 		global $outputlangsbis;
 		$outputlangsbis = null;
 		if (getDolGlobalString('PDF_USE_ALSO_LANGUAGE_CODE') && $outputlangs->defaultlang != getDolGlobalString('PDF_USE_ALSO_LANGUAGE_CODE')) {
@@ -313,40 +323,6 @@ class pdf_widmann extends ModelePdfExpedition
 					}
 				}
 
-                // Show barcode
-				$height_barcode = 0;
-				//$pdf->Rect($this->marge_gauche, $this->marge_haute, $this->page_largeur-$this->marge_gauche-$this->marge_droite, 30);
-				if (isModEnabled('barcode') && getDolGlobalString('BARCODE_ON_SHIPPING_PDF')) {
-					require_once DOL_DOCUMENT_ROOT.'/core/modules/barcode/doc/tcpdfbarcode.modules.php';
-
-					$encoding = 'QRCODE';
-					$module = new modTcpdfbarcode();
-					$barcode_path = '';
-					$result = 0;
-					if ($module->encodingIsSupported($encoding)) {
-						$result = $module->writeBarCode($object->ref, $encoding);
-
-						// get path of qrcode image
-						$newcode = $object->ref;
-						if (!preg_match('/^\w+$/', $newcode) || dol_strlen($newcode) > 32) {
-							$newcode = dol_hash($newcode, 'md5');
-						}
-						$barcode_path = $conf->barcode->dir_temp . '/barcode_' . $newcode . '_' . $encoding . '.png';
-					}
-
-					if ($result > 0) {
-						$tab_top -= 2;
-
-						$pdf->Image($barcode_path, $this->marge_gauche, $tab_top, 20, 20);
-
-						$nexY = $pdf->GetY();
-						$height_barcode = 20;
-
-						$tab_top += 22;
-					} else {
-						$this->error = 'Failed to generate barcode';
-					}
-				}
 				// print 'curX avant la prépa du tableau pour les colonnes machin : '.$this->page_largeur.' - '. $this->marge_droite;
                 // Use new auto column system
 				$this->prepareArrayColumnField($object, $outputlangs, $hidedetails, $hidedesc, $hideref);
@@ -376,18 +352,24 @@ class pdf_widmann extends ModelePdfExpedition
 					$showpricebeforepagebreak = 1;
 					$posYAfterImage = 0;
 					$posYAfterDescription = 0;
-					$heightforsignature = 0;
 
-					// Define sizes of pictures
-					$imglinesize = array(
-						'width' => 25,
-						'height' => 25
-					);
+					// Define size of image if we need it
+					$imgsize = array();
+					if (!empty($realpatharray[$i])) {
+						$imgsize = pdf_getSizeForImage($realpatharray[$i]);
+					}
+					
+					if (!empty($imgsize)){
+						$imglinesize = array(
+							'width' => $imgsize['width'] * 25,
+							'height' => $imgsize['height'] * 25,
+						);
+					}
 					
 					
 					if ($this->getColumnStatus('photo')) {
 						// We start with Photo of product line
-						if (isset($imglinesize['width']) && isset($imglinesize['height']) && ($curY + $imglinesize['height']) > ($this->page_hauteur - ($heightforfooter + $heightforfreetext + $heightforsignature + $heightforinfotot))) {	// If photo too high, we moved completely on new page
+						if (isset($imglinesize['width']) && isset($imglinesize['height']) && ($curY + $imglinesize['height']) > ($this->page_hauteur)) {	// If photo too high, we moved completely on new page
 							$pdf->AddPage('', '', true);
 							if (!empty($tplidx)) {
 								$pdf->useTemplate($tplidx);
@@ -411,38 +393,22 @@ class pdf_widmann extends ModelePdfExpedition
 							$posYAfterImage = $curY + $imglinesize['height'];
 						}
 					}
-					$y = $pdf->GetY();
-					if($i % 2 == 0 && $i > 7){
-						var_dump($i);
-						var_dump($nexY);
-						var_dump($y);
-					}
-					$nexY = max($pdf->GetY(), $posYAfterImage);
+					// Line changed compared to classic pdf model from Dolibarr to handle the page change
+					$nexY = max(min($nexY, $pdf->getY()), $posYAfterImage);
 					$pageposafter = $pdf->getPage();
-
-					if($i % 2 == 0 && $i > 7){
-						var_dump($i);
-						var_dump($nexY);
-					}
-
+					
 					$pdf->setPage($pageposbefore);
 					$pdf->setTopMargin($this->marge_haute);
 					$pdf->setPageOrientation('', 1, 0); // The only function to edit the bottom margin of current page to set it.
 
 					// We suppose that a too long description or photo were moved completely on next page
-					if ($pageposafter > $pageposbefore && empty($showpricebeforepagebreak)) {
-						$pdf->setPage($pageposafter);
-						$curY = $tab_top_newpage;
-					}
-
-					// We suppose that a too long description is moved completely on next page
 					if ($pageposafter > $pageposbefore) {
 						$pdf->setPage($pageposafter);
 						$curY = $tab_top_newpage;
 					}
-
+					
 					$pdf->SetFont('', '', $default_font_size - 1); // We reposition the default font
-
+					
                     // var_dump($line);
                     $prod = new Product($this->db);
 					$prod->fetch($line['prod_id']);
@@ -481,7 +447,7 @@ class pdf_widmann extends ModelePdfExpedition
 						// $pdf->SetDrawColor(190,190,200);
 						$pdf->line($this->marge_gauche, $nexY, $this->page_largeur - $this->marge_droite, $nexY);
 						$pdf->SetLineStyle(array('dash' => 0));
-					}
+					}					
 
 					// Detect if some page were added automatically and output _tableau for past pages
 					while ($pagenb < $pageposafter) {
@@ -502,28 +468,21 @@ class pdf_widmann extends ModelePdfExpedition
 							$pdf->useTemplate($tplidx);
 						}
 					}
-					// if (isset($object->lines[$i+1]->pagebreak) && $object->lines[$i+1]->pagebreak && false) {
-					// 	if ($pagenb == 1) {
-					// 		$this->_tableau($pdf, $tab_top, $this->page_hauteur - $tab_top - $heightforfooter, 0, $outputlangs, 0, 1);
-					// 	} else {
-					// 		$this->_tableau($pdf, $tab_top_newpage, $this->page_hauteur - $tab_top_newpage - $heightforfooter, 0, $outputlangs, 1, 1);
-					// 	}
-					// 	$this->_pagefoot($pdf, $object, $outputlangs, 1);
-					// 	// New page
-					// 	$pdf->AddPage();
-					// 	if (!empty($tplidx)) {
-					// 		$pdf->useTemplate($tplidx);
-					// 	}
-					// 	$pagenb++;
-					// 	// if (!getDolGlobalInt('MAIN_PDF_DONOTREPEAT_HEAD')) {
-					// 		//$this->_pagehead($pdf, $object, 0, $outputlangs);
-					// 	// }
+
+					// if($i > 8){
+						// var_dump($print['i']);
+						// var_dump($i);
+						// var_dump($print['y']);
+						// $y = $pdf->GetY();
+						// var_dump($y);
+						// var_dump($print['nb_page']);
+						// var_dump($pagenb);
+						// var_dump($print['pagepos']);
+						// var_dump($pageposafter);
+					// 	var_dump($print['fin']);
 					// }
 
                     $i = $i + 1;
-					
-					// var_dump($nexY);
-					// var_dump($pageposafter);
                 }
 
 				// Show square

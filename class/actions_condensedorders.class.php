@@ -41,7 +41,7 @@ class ActionsCondensedOrders {
         global $conf, $langs, $hookmanager;
 		include_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
         // print "Type d'objet est un produit : ".$object->type == Product::TYPE_PRODUCT;
-        if($object instanceof Product){
+        if($object instanceof ProductService){
             $option = '';
             $maxlength = 0;
             $save_lastsearch_value = -1;
