@@ -390,7 +390,7 @@ class pdf_widmann extends ModelePdfExpedition
 						if (!empty($this->cols['photo']) && isset($imglinesize['width']) && isset($imglinesize['height']) && !empty($realpatharray[$i])) {
 							$pdf->Image($realpatharray[$i], $this->getColumnContentXStart('photo'), $curY + 1, $imglinesize['width'], $imglinesize['height'], '', '', '', 2, 300); // Use 300 dpi
 							// $pdf->Image does not increase value return by getY, so we save it manually
-							$posYAfterImage = $curY + $imglinesize['height'];
+							$posYAfterImage = $curY + $imglinesize['height'] + 2;
 						}
 					}
 					// Line changed compared to classic pdf model from Dolibarr to handle the page change
@@ -893,7 +893,7 @@ class pdf_widmann extends ModelePdfExpedition
 		// Product reference
 		$this->cols['ref'] = array(
 			'rank' => $rank,
-			'width' => 50, // in mm
+			'width' => 54, // in mm
 			'status' => true,
 			'title' => array(
 				'textkey' => 'Prod. ref'
@@ -907,21 +907,21 @@ class pdf_widmann extends ModelePdfExpedition
 			$rank = $rank + 1;
 			$this->cols['photo'] = array(
 				'rank' => $rank,
-				'width' => 27,
+				'width' => 26,
 				'status' => true,
 				'title' => array(
-					'textkey' => 'Photo'
+					'textkey' => ''
 				),
 				'content' => array(
 					'align' => 'C',
 				),
-				'border-left' => true,
+				'border-left' => false,
 			);
 
 			$rank = $rank + 1;
 			$this->cols['qte_det'] = array(
 				'rank' => $rank,
-				'width' => 98, // in mm
+				'width' => 100, // in mm
 				'status' => true,
 				'title' => array(
 					'textkey' => 'Qté. détails'
@@ -935,7 +935,7 @@ class pdf_widmann extends ModelePdfExpedition
 			$rank = $rank + 1;
 			$this->cols['qte_tot'] = array(
 				'rank' => $rank,
-				'width' => 15, // in mm
+				'width' => 10, // in mm
 				'status' => true,
 				'title' => array(
 					'textkey' => 'Qté. tot'
@@ -949,7 +949,7 @@ class pdf_widmann extends ModelePdfExpedition
 			$rank = $rank + 1;
 			$this->cols['qte_det'] = array(
 				'rank' => $rank,
-				'width' => 115, // in mm
+				'width' => 111, // in mm
 				'status' => true,
 				'title' => array(
 					'textkey' => 'Qté. détails'
