@@ -231,4 +231,28 @@ class CondensedOrders extends CommonObject {
 		}
 		return '';
 	}
+	
+	/**
+	 * Function to get the stock
+	 * 
+	 * @param 	int 	$idprod		Id of the product
+	 * 
+	 * @return 	int 				Stock of the product
+	 */
+	public function getStock($idprod){
+		$sql = "SELECT SUM(s.reel) as stock";
+		$sql.= " FROM ".MAIN_DB_PREFIX."product as p";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product_stock as s on p.rowid = s.fk_product";
+		$sql.= " WHERE s.fk_product = ".$idprod;
+		$result = $this->db->query($sql);
+		if ($result){
+			$obj = $this->db->fetch_object($result);
+			if (!empty($obj)){
+				return $obj->stock;
+			}
+		} else {
+			$this->db->error();
+		}
+		return '';
+	}
 }

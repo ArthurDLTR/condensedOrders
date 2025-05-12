@@ -38,10 +38,10 @@ class ActionsCondensedOrders {
      * @return  int             -1 to throw an error, 0 if no error
      */
     public function getNomUrl($parameters, $object, $action){
-        global $conf, $langs, $hookmanager;
+        global $conf, $langs, $hookmanager, $db;
 		include_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
         // print "Type d'objet est un produit : ".$object->type == Product::TYPE_PRODUCT;
-        if($object instanceof ProductService){
+        if(!($object instanceof ProductFournisseur) && $object->isProduct()){
             $option = '';
             $maxlength = 0;
             $save_lastsearch_value = -1;
@@ -71,7 +71,8 @@ class ActionsCondensedOrders {
                 $label = implode($object->getTooltipContentArray($params));
             }
 
-            $label = $parameters['label'].'<br><b>Stock réel : </b>'.$object->stock_reel;
+            $condensed = new CondensedOrders($db);
+            $label = $parameters['label'].'<br><b>Stock réel : </b>'.$condensed->getStock($object->id);
             $notooltip = 0;
             $linkclose = '';
             if (empty($notooltip)) {
