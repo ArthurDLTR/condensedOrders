@@ -127,7 +127,7 @@ $item->setAsThirdpartyType();
 */
 // Setup conf for a selection of a boolean
 $formSetup->newItem('CONDENSEDORDERS_TABLE')->setAsYesNo();
-$formSetup->newItem('CONDENSEDORDERS_WIDMANN_PICTURE')->setAsYesNo();
+dolibarr_set_const($db, 'CONDENSEDORDERS_WIDMANN_PICTURE', 1, 'entier', 0, '', $conf->entity);
 // $formSetup->newItem('CONDENSEDORDERS_LOCATION')->setAsYesNo();
 // $formSetup->newItem('CONDENSEDORDERS_WEIGHT')->setAsYesNo();
 // $formSetup->newItem('CONDENSEDORDERS_TAG')->setAsYesNo();

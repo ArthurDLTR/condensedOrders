@@ -81,10 +81,10 @@ class pdf_widmann extends ModelePdfExpedition
         $this->page_largeur = $formatarray['width'];
 		$this->page_hauteur = $formatarray['height'];
 		$this->format = array($this->page_largeur, $this->page_hauteur);
-		$this->marge_gauche = getDolGlobalInt('MAIN_PDF_MARGIN_LEFT', 10);
-		$this->marge_droite = getDolGlobalInt('MAIN_PDF_MARGIN_RIGHT', 10);
-		$this->marge_haute = getDolGlobalInt('MAIN_PDF_MARGIN_TOP', 10); // Valeur à modifier pour changer la marge du haut de chaque page une fois que les problèmes d'affichage sur plusieurs pages seront réglés
-		$this->marge_basse = getDolGlobalInt('MAIN_PDF_MARGIN_BOTTOM', 10);
+		$this->marge_gauche = getDolGlobalInt('MAIN_PDF_MARGIN_LEFT', 5);
+		$this->marge_droite = getDolGlobalInt('MAIN_PDF_MARGIN_RIGHT', 5);
+		$this->marge_haute = getDolGlobalInt('MAIN_PDF_MARGIN_TOP', 5); // Valeur à modifier pour changer la marge du haut de chaque page une fois que les problèmes d'affichage sur plusieurs pages seront réglés
+		$this->marge_basse = getDolGlobalInt('MAIN_PDF_MARGIN_BOTTOM', 5);
     }
 	
 	/**
@@ -274,7 +274,7 @@ class pdf_widmann extends ModelePdfExpedition
 				$pagenb = 0;
 				$pdf->SetDrawColor(128, 128, 128);
 
-                $pdf->SetTitle($outputlangs->convToOutputCharset('titre_test'));
+                $pdf->SetTitle($outputlangs->convToOutputCharset('MultiBL'));
 				$pdf->SetSubject($outputlangs->transnoentities("Shipment"));
 				$pdf->SetCreator("Dolibarr ".DOL_VERSION);
                 $pdf->SetAuthor($outputlangs->convToOutputCharset($user->getFullName($outputlangs)));
@@ -300,28 +300,7 @@ class pdf_widmann extends ModelePdfExpedition
                 
 				$tab_height = $this->page_hauteur - $tab_top - $heightforfooter - $heightforfreetext;
                 
-				$this->posxdesc = $this->marge_gauche + 1;
-
-                // Incoterm
-				$height_incoterms = 0;
-				if (isModEnabled('incoterm')) {
-					$desc_incoterms = $object->getIncotermsForPDF();
-					if ($desc_incoterms) {
-						$tab_top -= 2;
-
-						$pdf->SetFont('', '', $default_font_size - 1);
-						$pdf->writeHTMLCell(190, 3, $this->posxdesc - 1, $tab_top - 1, dol_htmlentitiesbr($desc_incoterms), 0, 1);
-						$nexY = $pdf->GetY();
-						$height_incoterms = $nexY - $tab_top;
-
-						// Rect takes a length in 3rd parameter
-						$pdf->SetDrawColor(192, 192, 192);
-						$pdf->Rect($this->marge_gauche, $tab_top - 1, $this->page_largeur - $this->marge_gauche - $this->marge_droite, $height_incoterms + 1);
-
-						$tab_top = $nexY + 6;
-						$height_incoterms += 4;
-					}
-				}
+				$nexY = $tap_top - 1;
 
 				// print 'curX avant la prépa du tableau pour les colonnes machin : '.$this->page_largeur.' - '. $this->marge_droite;
                 // Use new auto column system
@@ -349,7 +328,7 @@ class pdf_widmann extends ModelePdfExpedition
 					$pdf->setPageOrientation('', 1, $heightforfooter + $heightforfreetext + $heightforinfotot); // The only function to edit the bottom margin of current page to set it.
 					$pageposbefore = $pdf->getPage();
 
-					$showpricebeforepagebreak = 1;
+					$showpricebeforepagebreak = 0;
 					$posYAfterImage = 0;
 					$posYAfterDescription = 0;
 
@@ -467,6 +446,20 @@ class pdf_widmann extends ModelePdfExpedition
 						if (!empty($tplidx)) {
 							$pdf->useTemplate($tplidx);
 						}
+					}
+					if (isset($object->lines[$i + 1]->pagebreak) && $object->lines[$i + 1]->pagebreak) {
+						if ($pagenb == $pageposafter) {
+							$this->_tableau($pdf, $tab_top, $this->page_hauteur - $tab_top - $heightforfooter, 0, $outputlangs, $hidetop, 1, $object->multicurrency_code, $outputlangsbis);
+						} else {
+							$this->_tableau($pdf, $tab_top_newpage, $this->page_hauteur - $tab_top_newpage - $heightforfooter, 0, $outputlangs, 1, 1, $object->multicurrency_code, $outputlangsbis);
+						}
+						$this->_pagefoot($pdf, $object, $outputlangs, 1);
+						// New page
+						$pdf->AddPage();
+						if (!empty($tplidx)) {
+							$pdf->useTemplate($tplidx);
+						}
+						$pagenb++;
 					}
 
 					// if($i > 8){
@@ -971,7 +964,7 @@ class pdf_widmann extends ModelePdfExpedition
 				'content' => array(
 					'align' => 'C',
 				),
-				'border-left' => true, // remove left line separator
+				'border-left' => true, // add left line separator
 			);
 		}
 

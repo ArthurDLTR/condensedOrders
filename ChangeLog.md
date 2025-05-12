@@ -1,7 +1,7 @@
 # CHANGELOG CONDENSEDORDERS FOR [DOLIBARR ERP CRM](https://www.dolibarr.org)
 
 ## Version 1.2
-Ajout des pĥotos dans le modèle de PDF Widmann, paramétrable.
+Ajout d'une option pour avoir les images des produits sur le PDF généré.
 
 ## Version 1.1
 Ajout d'un hook pour afficher le stock d'un produit dans son info-bulle.
