@@ -247,12 +247,12 @@ class CondensedOrders extends CommonObject {
 		$result = $this->db->query($sql);
 		if ($result){
 			$obj = $this->db->fetch_object($result);
-			if (!empty($obj)){
+			if (!empty($obj->stock)){
 				return $obj->stock;
 			}
+			return 0;
 		} else {
 			$this->db->error();
 		}
-		return '';
 	}
 }

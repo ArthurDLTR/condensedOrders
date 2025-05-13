@@ -42,7 +42,7 @@ class ActionsCondensedOrders {
 		include_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
         // print "Type d'objet est un produit : ".$object->type == Product::TYPE_PRODUCT;
         if($object instanceof Product && !($object instanceof ProductFournisseur)){
-            if($object->isProduct()){
+            // if($object->isProduct()){
                 $option = '';
                 $maxlength = 0;
                 $save_lastsearch_value = -1;
@@ -134,7 +134,7 @@ class ActionsCondensedOrders {
                 return 0;
             }
             return -1;
-        }
+        // }
     }
 
     /** 
