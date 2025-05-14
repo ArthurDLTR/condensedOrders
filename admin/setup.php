@@ -96,7 +96,10 @@ $useFormSetup = 1;
 
 if (!class_exists('FormSetup')) {
 	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formsetup.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/categories/class/categorie.class.php';
 }
+$form = new Form($db);
 $formSetup = new FormSetup($db);
 
 // Access control
@@ -142,6 +145,16 @@ $sortChoices = array(
 	'location' => $langs->trans('CONDENSEDORDERS_LOCATION'),
 );
 $formSetup->newItem('CONDENSEDORDERS_SORT')->setAsSelect($sortChoices);
+
+/**
+ * Setup to choose tags to take in consideration
+ */
+if (getDolGlobalString('CONDENSEDORDERS_SORT') == 'tag'){ // Checking if the sort by tag is activated
+	$cate = $form->select_all_categories(Categorie::TYPE_PRODUCT, '', 'parent', 64, 0, 1); // Return all the existing tag for products
+	$item = $formSetup->newItem('CONDENSEDORDERS_TAGS'); //  create the item to choose
+	$item->setAsMultiSelect($cate); // set it as a multiselect to be able to choose as much as tags we want
+	// $item->helpText = $langs->trans('CONDENSEDORDERS_TAGS_HELPER'); // Define the text to help the user
+}
 
 /*
 // Setup conf for a selection of an email template of type thirdparty

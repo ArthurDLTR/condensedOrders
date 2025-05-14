@@ -219,7 +219,10 @@ class CondensedOrders extends CommonObject {
 		$sql = "SELECT tagp.fk_categorie as tag";
 		$sql.= " FROM ".MAIN_DB_PREFIX."categorie_product as tagp";
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."categorie as tagc on tagc.rowid = tagp.fk_categorie";
-		$sql.= " WHERE tagc.fk_parent = 0 AND tagc.rowid != 140 AND tagp.fk_product = ".$idprod;
+		$sql.= " WHERE tagp.fk_product = ".$idprod;
+		if (getDolGlobalString('CONDENSEDORDERS_TAGS') != ''){
+			$sql.= " AND tagc.rowid IN (".getDolGlobalString('CONDENSEDORDERS_TAGS').")";
+		}
 		$result = $this->db->query($sql);
 		if ($result){
 			$obj = $this->db->fetch_object($result);

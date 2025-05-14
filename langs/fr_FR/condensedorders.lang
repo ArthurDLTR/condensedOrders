@@ -80,3 +80,4 @@ CONDENSEDORDERS_LOCATION = Utilisation de la localisation GPS pour ranger les ti
 CONDENSEDORDERS_WEIGHT = Tri des produits du plus lourd au moins lourd
 CONDENSEDORDERS_TAG = Tri des produits par tag
 CONDENSEDORDERS_DESCRIPTION = Si aucun tri n'est sélectionné, le tri se fait selon l'ordre alphabétique des références. Une seule méthode de tri peut être sélectionnée, Ordre de priorité : Location > Poids >  Tag.
+CONDENSEDORDERS_TAGS = Tags à prendre en compte pour le tri (si aucun tag choisi, tous les tags sont pris en compte)

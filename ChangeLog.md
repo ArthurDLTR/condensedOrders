@@ -1,5 +1,8 @@
 # CHANGELOG CONDENSEDORDERS FOR [DOLIBARR ERP CRM](https://www.dolibarr.org)
 
+## Version 1.3
+Possibilité de choisir les tags pris en compte dans le tri par tag
+
 ## Version 1.2
 Ajout d'une option pour avoir les images des produits sur le PDF généré.
 
