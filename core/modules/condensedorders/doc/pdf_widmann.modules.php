@@ -244,7 +244,7 @@ class pdf_widmann extends ModelePdfExpedition
 				$hookmanager->initHooks(array('pdfgeneration'));
 				$parameters = array('file' => $file, 'object' => $object, 'outputlangs' => $outputlangs);
 				global $action;
-				$reshook = $hookmanager->executeHooks('beforePDFCreation', $parameters, $object, $action); // Note that $action and $object may have been modified by some hooks
+				// $reshook = $hookmanager->executeHooks('beforePDFCreation', $parameters, $object, $action); // Note that $action and $object may have been modified by some hooks
 
 				// Set nblines with the new facture lines content after hook
 				$nblines = is_array($object->lines) ? count($object->lines) : 0;
@@ -338,10 +338,15 @@ class pdf_widmann extends ModelePdfExpedition
 						$imgsize = pdf_getSizeForImage($realpatharray[$i]);
 					}
 					
-					if (!empty($imgsize)){
+					if (!empty($imgsize) && ($imgsize['width'] > 25 || $imgsize['height'] > 25)){
 						$imglinesize = array(
-							'width' => $imgsize['width'] * 25,
-							'height' => $imgsize['height'] * 25,
+							'width' => $imgsize['width'] / ($imgsize['width'] / 25),
+							'height' => $imgsize['height'] / ($imgsize['height'] / 25),
+						);
+					} else {
+						$imglinesize = array(
+							'width' => $imgsize['width'],
+							'height' => $imgsize['height'],
 						);
 					}
 					
@@ -436,7 +441,7 @@ class pdf_widmann extends ModelePdfExpedition
 						} else {
 							$this->_tableau($pdf, $tab_top_newpage, $this->page_hauteur - $tab_top_newpage - $heightforfooter, 0, $outputlangs, 1, 1);
 						}
-						$this->_pagefoot($pdf, $object, $outputlangs, 1);
+						// $this->_pagefoot($pdf, $object, $outputlangs, 1);
 						$pagenb++;
 						$pdf->setPage($pagenb);
 						$pdf->setPageOrientation('', 1, 0); // The only function to edit the bottom margin of current page to set it.
@@ -453,7 +458,7 @@ class pdf_widmann extends ModelePdfExpedition
 						} else {
 							$this->_tableau($pdf, $tab_top_newpage, $this->page_hauteur - $tab_top_newpage - $heightforfooter, 0, $outputlangs, 1, 1, $object->multicurrency_code, $outputlangsbis);
 						}
-						$this->_pagefoot($pdf, $object, $outputlangs, 1);
+						// $this->_pagefoot($pdf, $object, $outputlangs, 1);
 						// New page
 						$pdf->AddPage();
 						if (!empty($tplidx)) {
@@ -488,7 +493,7 @@ class pdf_widmann extends ModelePdfExpedition
 				}
                 
                 // Pagefoot
-				$this->_pagefoot($pdf, $object, $outputlangs);
+				// $this->_pagefoot($pdf, $object, $outputlangs);
 				if (method_exists($pdf, 'AliasNbPages')) {
 					$pdf->AliasNbPages();
 				}
@@ -498,14 +503,14 @@ class pdf_widmann extends ModelePdfExpedition
 				$pdf->Output($file, 'F');
 
                 // Add pdfgeneration hook
-				$hookmanager->initHooks(array('pdfgeneration'));
-				$parameters = array('file' => $file, 'object' => $object, 'outputlangs' => $outputlangs);
-				global $action;
-				$reshook = $hookmanager->executeHooks('afterPDFCreation', $parameters, $this, $action); // Note that $action and $object may have been modified by some hooks
-				if ($reshook < 0) {
-					$this->error = $hookmanager->error;
-					$this->errors = $hookmanager->errors;
-				}
+				// $hookmanager->initHooks(array('pdfgeneration'));
+				// $parameters = array('file' => $file, 'object' => $object, 'outputlangs' => $outputlangs);
+				// global $action;
+				// $reshook = $hookmanager->executeHooks('afterPDFCreation', $parameters, $this, $action); // Note that $action and $object may have been modified by some hooks
+				// if ($reshook < 0) {
+				// 	$this->error = $hookmanager->error;
+				// 	$this->errors = $hookmanager->errors;
+				// }
 
                 dolChmod($file);
 
@@ -833,7 +838,7 @@ class pdf_widmann extends ModelePdfExpedition
 	 */
 	protected function _pagefoot(&$pdf, $object, $outputlangs, $hidefreetext = 0)
     {
-		$showdetails = getDolGlobalInt('MAIN_GENERATE_DOCUMENTS_SHOW_FOOT_DETAILS', 0);
+		$showdetails = 0; // getDolGlobalInt('MAIN_GENERATE_DOCUMENTS_SHOW_FOOT_DETAILS', 0);
 		return pdf_pagefoot($pdf, $outputlangs, 'SHIPPING_FREE_TEXT', $this->emetteur, $this->marge_basse, $this->marge_gauche, $this->page_hauteur, $object, $showdetails, $hidefreetext, $this->page_largeur, $this->watermark);
 	}
 
@@ -886,7 +891,7 @@ class pdf_widmann extends ModelePdfExpedition
 		// Product reference
 		$this->cols['ref'] = array(
 			'rank' => $rank,
-			'width' => 54, // in mm
+			'width' => 56, // in mm
 			'status' => true,
 			'title' => array(
 				'textkey' => 'Prod. ref'
@@ -894,7 +899,7 @@ class pdf_widmann extends ModelePdfExpedition
 			'content' => array(
 				'align' => 'L',
 			),
-			'border-left' => true, // add left line separator
+			'border-left' => false, // add left line separator
 		);
 		if (getDolGlobalInt('CONDENSEDORDERS_WIDMANN_PICTURE')) {
 			$rank = $rank + 1;
@@ -914,7 +919,7 @@ class pdf_widmann extends ModelePdfExpedition
 			$rank = $rank + 1;
 			$this->cols['qte_det'] = array(
 				'rank' => $rank,
-				'width' => 100, // in mm
+				'width' => 110, // in mm
 				'status' => true,
 				'title' => array(
 					'textkey' => 'Qté. détails'
@@ -976,7 +981,7 @@ class pdf_widmann extends ModelePdfExpedition
 			'hideref' => $hideref
 		);
 
-		$reshook = $hookmanager->executeHooks('defineColumnField', $parameters, $this); // Note that $object may have been modified by hook
+		// $reshook = $hookmanager->executeHooks('defineColumnField', $parameters, $this); // Note that $object may have been modified by hook
 		if ($reshook < 0) {
 			setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 		} elseif (empty($reshook)) {
