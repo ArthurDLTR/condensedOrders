@@ -277,13 +277,26 @@ class pdf_brahe extends ModelePdfExpedition
 			</style><body>';
 			$html.= '<table>';
             $html.= '<tr class="title">
-                    <td width="35%">Réf Produit</td>
-                    <td width="60%">Qté par commande</td>
+                    <td width="30%">Réf Produit</td>
+                    <td width="50%">Qté par commande</td>
                     <td width="5%">Qté totale</td>
                 </tr>';
 			foreach($object->products as $key => $line){
 				$prod->fetch($line['prod_id']);
 				$html.= '<tr><td>'.$line['ref'].' - '.$prod->label.'</td>';
+				
+				// Tentative d'ajouter les images dans le tableau html mais pas supporté par TCPDF
+				// $html.= "<td>";
+				// $upload_dir = $conf->product->multidir_output[$prod->entity];
+				// $pdir = get_exdir($prod->id, 2, 0, 0, $prod, 'product');
+				// $dir = $upload_dir.'/'.$pdir;
+				// $photo = $prod->liste_photos($dir, 1);
+				// // var_dump($photo);
+				// if (is_array($photo) && count($photo)){
+				// 	$html.= '<img src="'.$photo[0]['photo_vignette'].'" width="25px" height="25px">';
+				// }
+				// $html.= '</td>';
+				
 				$html.= '<td>';
 				foreach($line['qte_det'] as $key => $det){
 					$soc->fetch($det['soc']);

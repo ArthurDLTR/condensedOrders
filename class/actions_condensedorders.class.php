@@ -285,21 +285,35 @@ class ActionsCondensedOrders {
                         <td>Qté par commande</td>
                         <td>Qté totale</td>
                     </tr>';
+                    // Directory to get the photos of the products
                     foreach($arrayLineProduct as $key => $line){
                         $prod->fetch($line['prod_id']);
                         print '<tr>
-                            <td width="30%">'.$line['ref'].' - '.$prod->label.'</td>';
-                            print '<td>';
-                            foreach($line['qte_det'] as $key => $det){
-                                $soc->fetch($det['soc']);
-                                if (!$det['ref_client']){
-                                    print $det['qte_expe'].' pour '.$soc->name.'<br>';
-                                }else{
-                                    print $det['qte_expe'].' pour '.$soc->name.' ('.$det['ref_client'].')<br>';
-                                }
+                        <td width="30%">'.$line['ref'].' - '.$prod->label.'</td>';
+
+                        // Tentative d'ajouter les images dans le tableau html mais pas supporté par TCPDF				
+                        // print "<td>";
+                        // $upload_dir = $conf->product->multidir_output[$prod->entity];
+                        // $pdir = get_exdir($prod->id, 2, 0, 0, $prod, 'product');
+                        // $dir = $upload_dir.'/'.$pdir;
+                        // $photo = $prod->liste_photos($dir, 1);
+                        // // var_dump($photo);
+                        // if (is_array($photo) && count($photo)){
+                        //     print '<img src="'.$photo[0]['photo'].'">';
+                        // }
+                        // print '</td>';
+                        
+                        print '<td>';
+                        foreach($line['qte_det'] as $key => $det){
+                            $soc->fetch($det['soc']);
+                            if (!$det['ref_client']){
+                                print $det['qte_expe'].' pour '.$soc->name.'<br>';
+                            }else{
+                                print $det['qte_expe'].' pour '.$soc->name.' ('.$det['ref_client'].')<br>';
                             }
-                            print '</td>';
-                            print '<td>'.$line['qte_tot'].'</td>
+                        }
+                        print '</td>';
+                        print '<td>'.$line['qte_tot'].'</td>
                         </tr>';
                     }
                     print '</table>';
