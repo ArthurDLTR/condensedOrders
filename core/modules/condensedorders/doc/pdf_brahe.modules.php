@@ -277,8 +277,8 @@ class pdf_brahe extends ModelePdfExpedition
 			</style><body>';
 			$html.= '<table>';
             $html.= '<tr class="title">
-                    <td width="30%">Réf Produit</td>
-                    <td width="50%">Qté par commande</td>
+                    <td width="35%">Réf Produit</td>
+                    <td width="60%">Qté par commande</td>
                     <td width="5%">Qté totale</td>
                 </tr>';
 			foreach($object->products as $key => $line){

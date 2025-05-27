@@ -33,7 +33,7 @@ CONDENSEDORDERS_MYPARAM1 = My param 1
 CONDENSEDORDERS_MYPARAM1Tooltip = My param 1 tooltip
 CONDENSEDORDERS_MYPARAM2=My param 2
 CONDENSEDORDERS_MYPARAM2Tooltip=My param 2 tooltip
-
+CONDENSEDORDERS_ADDON = Activate PDF for the module
 
 #
 # About page
@@ -41,12 +41,16 @@ CONDENSEDORDERS_MYPARAM2Tooltip=My param 2 tooltip
 About = About
 CondensedOrdersAbout = About CondensedOrders
 CondensedOrdersAboutPage = CondensedOrders about page
+WIDMANN_PDF_DESCR = PDF for orders preparation with images
+BRAHE_PDF_DESCR = PDF for orders preparation
 
 #
 # Settings page
 #
-WIDMANN_PDF_DESCR = PDF for massive preparation of orders
-BRAHE_PDF_DESCR = Simple PDF model for orders preparation
+CONDENSEDORDERS_WIDMANN_PICTURE = Pictures displayed on Widmann PDF
+CONDENSEDORDERS_DEFAULT = Sort by alphabetical order
+CONDENSEDORDERS_SORT = Sort method for the product in the orders preparation PDF
+
 
 #
 # Sample page
@@ -77,3 +81,4 @@ CONDENSEDORDERS_LOCATION = Use of GPS to sort thirdparties in distance reverse o
 CONDENSEDORDERS_WEIGHT = Sort products by decreasing weight
 CONDENSEDORDERS_TAG = Sort products by categorie
 CONDENSEDORDERS_DESCRIPTION = If no sort method selected, sort by alphabetical order of the products' ref. Only one sort method can be applied, Priority order : Location > Weight > Categorie.
+CONDENSEDORDERS_TAGS = Tags used in the sort method (if none, all tags are used)
