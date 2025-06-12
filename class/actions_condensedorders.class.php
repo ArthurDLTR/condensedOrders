@@ -133,7 +133,6 @@ class ActionsCondensedOrders {
                 // $this->resprints = $parameters['result'];
                 return 0;
             }
-            return -1;
         // }
     }
 
