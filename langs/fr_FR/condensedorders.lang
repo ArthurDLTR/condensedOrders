@@ -50,6 +50,7 @@ BRAHE_PDF_DESCR = PDF simple pour la préparation de commande
 CONDENSEDORDERS_WIDMANN_PICTURE = Affichage des photos dans le PDF Widmann généré
 CONDENSEDORDERS_DEFAULT = Tri par ordre alphabétique 
 CONDENSEDORDERS_SORT = Méthode de tri des produits pour la préparation de commande
+CONDENSEDORDERS_STOCK = Afficher le stock d'un produit dans son tooltip
 
 #
 # Sample page

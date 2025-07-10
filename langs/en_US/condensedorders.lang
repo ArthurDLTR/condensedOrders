@@ -50,6 +50,7 @@ BRAHE_PDF_DESCR = PDF for orders preparation
 CONDENSEDORDERS_WIDMANN_PICTURE = Pictures displayed on Widmann PDF
 CONDENSEDORDERS_DEFAULT = Sort by alphabetical order
 CONDENSEDORDERS_SORT = Sort method for the product in the orders preparation PDF
+CONDENSEDORDERS_STOCK = Display the stock of the product in tooltip
 
 
 #

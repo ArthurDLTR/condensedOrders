@@ -135,6 +135,8 @@ dolibarr_set_const($db, 'CONDENSEDORDERS_WIDMANN_PICTURE', 1, 'entier', 0, '', $
 // $formSetup->newItem('CONDENSEDORDERS_WEIGHT')->setAsYesNo();
 // $formSetup->newItem('CONDENSEDORDERS_TAG')->setAsYesNo();
 
+$formSetup->newItem('CONDENSEDORDERS_STOCK')->setAsYesNo();
+
 /**
  * Setup to choose the sort technic
  */

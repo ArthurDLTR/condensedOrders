@@ -39,101 +39,103 @@ class ActionsCondensedOrders {
      */
     public function getNomUrl($parameters, $object, $action){
         global $conf, $langs, $hookmanager, $db;
-		include_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
-        // print "Type d'objet est un produit : ".$object->type == Product::TYPE_PRODUCT;
-        if($object instanceof Product && !($object instanceof ProductFournisseur)){
-            // if($object->isProduct()){
-                $option = '';
-                $maxlength = 0;
-                $save_lastsearch_value = -1;
-                $morecss = '';
-                $add_label = 0;
-                $sep = ' - ';
-                $result = '';
-                $withpicto = 1;
+        if (getDolGlobalInt('CONDENSEDORDERS_STOCK')){
+            include_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
+            // print "Type d'objet est un produit : ".$object->type == Product::TYPE_PRODUCT;
+            if($object instanceof Product && !($object instanceof ProductFournisseur)){
+                // if($object->isProduct()){
+                    $option = '';
+                    $maxlength = 0;
+                    $save_lastsearch_value = -1;
+                    $morecss = '';
+                    $add_label = 0;
+                    $sep = ' - ';
+                    $result = '';
+                    $withpicto = 1;
 
-                $newref = $object->ref;
-                if ($maxlength) {
-                    $newref = dol_trunc($newref, 0, 'middle');
-                }
-                $params = [
-                    'id' => $object->id,
-                    'objecttype' => (isset($object->type) ? ($object->type == 1 ? 'service' : 'product') : $object->element),
-                    'option' => '',
-                    'nofetch' => 1,
-                ];
-                $classfortooltip = 'classfortooltip';
-                $dataparams = '';
-                if (getDolGlobalInt('MAIN_ENABLE_AJAX_TOOLTIP')) {
-                    $classfortooltip = 'classforajaxtooltip';
-                    $dataparams = ' data-params="'.dol_escape_htmltag(json_encode($params)).'"';
-                    $label = '';
-                } else {
-                    $label = implode($object->getTooltipContentArray($params));
-                }
-
-                $condensed = new CondensedOrders($db);
-                $label = $parameters['label'].'<br><b>Stock réel : </b>'.$condensed->getStock($object->id);
-                $notooltip = 0;
-                $linkclose = '';
-                if (empty($notooltip)) {
-                    if (getDolGlobalString('MAIN_OPTIMIZEFORTEXTBROWSER')) {
-                        $label = $langs->trans("ShowProduct");
-                        $linkclose .= ' alt="'.dol_escape_htmltag($label, 1, 1).'"';
+                    $newref = $object->ref;
+                    if ($maxlength) {
+                        $newref = dol_trunc($newref, 0, 'middle');
                     }
-                    $linkclose .= ($label ? ' title="'.dol_escape_htmltag($label, 1, 1).'"' : ' title="tocomplete"');
-                    $linkclose .= $dataparams.' class="nowraponall '.$classfortooltip.($morecss ? ' '.$morecss : '').'"';
-                } else {
-                    $linkclose = ' class="nowraponall'.($morecss ? ' '.$morecss : '').'"';
-                }
-
-                if ($option == 'supplier' || $option == 'category') {
-                    $url = DOL_URL_ROOT.'/product/fournisseurs.php?id='.$object->id;
-                } elseif ($option == 'stock') {
-                    $url = DOL_URL_ROOT.'/product/stock/product.php?id='.$object->id;
-                } elseif ($option == 'composition') {
-                    $url = DOL_URL_ROOT.'/product/composition/card.php?id='.$object->id;
-                } else {
-                    $url = DOL_URL_ROOT.'/product/card.php?id='.$object->id;
-                }
-
-                if ($option !== 'nolink') {
-                    // Add param to save lastsearch_values or not
-                    $add_save_lastsearch_values = ($save_lastsearch_value == 1 ? 1 : 0);
-                    if ($save_lastsearch_value == -1 && isset($_SERVER["PHP_SELF"]) && preg_match('/list\.php/', $_SERVER["PHP_SELF"])) {
-                        $add_save_lastsearch_values = 1;
+                    $params = [
+                        'id' => $object->id,
+                        'objecttype' => (isset($object->type) ? ($object->type == 1 ? 'service' : 'product') : $object->element),
+                        'option' => '',
+                        'nofetch' => 1,
+                    ];
+                    $classfortooltip = 'classfortooltip';
+                    $dataparams = '';
+                    if (getDolGlobalInt('MAIN_ENABLE_AJAX_TOOLTIP')) {
+                        $classfortooltip = 'classforajaxtooltip';
+                        $dataparams = ' data-params="'.dol_escape_htmltag(json_encode($params)).'"';
+                        $label = '';
+                    } else {
+                        $label = implode($object->getTooltipContentArray($params));
                     }
-                    if ($add_save_lastsearch_values) {
-                        $url .= '&save_lastsearch_values=1';
-                    }
-                }
 
-                $linkstart = '<a href="'.$url.'"';
-                $linkstart .= $linkclose.'>';
-                $linkend = '</a>';
-
-                $result .= $linkstart;
-                if ($withpicto) {
-                    if ($object->type == Product::TYPE_PRODUCT) {
-                        $result .= (img_object(($notooltip ? '' : $label), 'product', 'class="paddingright"', 0, 0, $notooltip ? 0 : 1));
+                    $condensed = new CondensedOrders($db);
+                    $label = $parameters['label'].'<br><b>Stock réel : </b>'.$condensed->getStock($object->id);
+                    $notooltip = 0;
+                    $linkclose = '';
+                    if (empty($notooltip)) {
+                        if (getDolGlobalString('MAIN_OPTIMIZEFORTEXTBROWSER')) {
+                            $label = $langs->trans("ShowProduct");
+                            $linkclose .= ' alt="'.dol_escape_htmltag($label, 1, 1).'"';
+                        }
+                        $linkclose .= ($label ? ' title="'.dol_escape_htmltag($label, 1, 1).'"' : ' title="tocomplete"');
+                        $linkclose .= $dataparams.' class="nowraponall '.$classfortooltip.($morecss ? ' '.$morecss : '').'"';
+                    } else {
+                        $linkclose = ' class="nowraponall'.($morecss ? ' '.$morecss : '').'"';
                     }
-                    if ($object->type == Product::TYPE_SERVICE) {
-                        $result .= (img_object(($notooltip ? '' : $label), 'service', 'class="paddingright"', 0, 0, $notooltip ? 0 : 1));
-                    }
-                }
-                $result .= '<span class="aaa">'.dol_escape_htmltag($newref).'</span>';
-                $result .= $linkend;
-                if ($withpicto != 2) {
-                    $result .= (($add_label && $object->label) ? $sep.dol_trunc($object->label, ($add_label > 1 ? $add_label : 0)) : '');
-                }
 
-                // print $action; // Affiche le type de page
-                $parameters['getnomurl'] = $result;
-                // $parameters['label'].'<br><b>Stock réel : </b>'.$object->stock_reel;
-                // $this->resprints = $parameters['result'];
-                return 0;
+                    if ($option == 'supplier' || $option == 'category') {
+                        $url = DOL_URL_ROOT.'/product/fournisseurs.php?id='.$object->id;
+                    } elseif ($option == 'stock') {
+                        $url = DOL_URL_ROOT.'/product/stock/product.php?id='.$object->id;
+                    } elseif ($option == 'composition') {
+                        $url = DOL_URL_ROOT.'/product/composition/card.php?id='.$object->id;
+                    } else {
+                        $url = DOL_URL_ROOT.'/product/card.php?id='.$object->id;
+                    }
+
+                    if ($option !== 'nolink') {
+                        // Add param to save lastsearch_values or not
+                        $add_save_lastsearch_values = ($save_lastsearch_value == 1 ? 1 : 0);
+                        if ($save_lastsearch_value == -1 && isset($_SERVER["PHP_SELF"]) && preg_match('/list\.php/', $_SERVER["PHP_SELF"])) {
+                            $add_save_lastsearch_values = 1;
+                        }
+                        if ($add_save_lastsearch_values) {
+                            $url .= '&save_lastsearch_values=1';
+                        }
+                    }
+
+                    $linkstart = '<a href="'.$url.'"';
+                    $linkstart .= $linkclose.'>';
+                    $linkend = '</a>';
+
+                    $result .= $linkstart;
+                    if ($withpicto) {
+                        if ($object->type == Product::TYPE_PRODUCT) {
+                            $result .= (img_object(($notooltip ? '' : $label), 'product', 'class="paddingright"', 0, 0, $notooltip ? 0 : 1));
+                        }
+                        if ($object->type == Product::TYPE_SERVICE) {
+                            $result .= (img_object(($notooltip ? '' : $label), 'service', 'class="paddingright"', 0, 0, $notooltip ? 0 : 1));
+                        }
+                    }
+                    $result .= '<span class="aaa">'.dol_escape_htmltag($newref).'</span>';
+                    $result .= $linkend;
+                    if ($withpicto != 2) {
+                        $result .= (($add_label && $object->label) ? $sep.dol_trunc($object->label, ($add_label > 1 ? $add_label : 0)) : '');
+                    }
+
+                    // print $action; // Affiche le type de page
+                    $parameters['getnomurl'] = $result;
+                    // $parameters['label'].'<br><b>Stock réel : </b>'.$object->stock_reel;
+                    // $this->resprints = $parameters['result'];
+                    return 0;
+                // }
             }
-        // }
+        }
     }
 
     /** 
